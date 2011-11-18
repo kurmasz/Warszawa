@@ -29,6 +29,7 @@ java -jar ${jar} > ${actual_output}/runJar
 #
 # Compile
 #
+mkdir -p out
 rm -rf out/*
 javac -cp ${jar} src/*/*.java -d out
 
