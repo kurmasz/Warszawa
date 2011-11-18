@@ -1,0 +1,40 @@
+<p>Warszawa is a Java library containing code I found that I was either frequently rewriting or copying between
+   projects. The key features of this library include the following packages:</p>
+
+<dl>
+   <dt> warszawa.io:</dt>
+   <dd>Helper methods for opening PrintWriters and InputStreams. These helper methods can (if desired)
+      <ul>
+         <li>configure the desired autoflush and Charset</li>
+         <li>map names like "-", "stdin", "stdout", and "stderr" onto System.in and System.out</li>
+         <li>automatically decompress files with a .bz2 suffix</li>
+         <li>display and error message and exit if the file cannot be opened.</li>
+      </ul>
+   </dd>
+
+   <dt>warszawa.dl:</dt>
+   <dd>Classes for dynamically loading classes and instantiating instances of those classes. In particular, warszawa.dl
+      <ul>
+         <li> combines the dynamic loading of the class, instantiation of a new object,
+            and casting of that new object into one
+            method;
+         </li>
+         <li> watches for the myriad exceptions potentially thrown by the above steps and re-throws a single exception:
+            DyCLJException; and
+         </li>
+         <li>generates detailed, helpful error messages.</li>
+      </ul>
+   </dd>
+
+   <dt>warszawa.intlistgen:</dt>
+   <dd>Classes that generate lists of integers. These classes are useful for generating test cases for student
+      projects.
+   </dd>
+
+   <dt>warszawa.log:</dt>
+   <dd>A simple logging utility</dd>
+</dl>
+
+    <a href="http://www.cis.gvsu.edu/~kurmasz/Software/warszawa/doc/index.html">documentation</a>
+    <a href="warszawa/warszawa-1.0.jar">jar file</a>
+    <a href="https://github.com/kurmasz/Warszawa">repository</a>
