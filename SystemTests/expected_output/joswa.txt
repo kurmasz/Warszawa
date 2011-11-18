@@ -1,0 +1,2 @@
+Verbose is true
+Debug level is 3

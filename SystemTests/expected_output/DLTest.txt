@@ -1,0 +1,8 @@
+Test pass.  Magic number: 47
+Trying some stuff that should fail.
+Class "fred" was not found. Be sure to specify the class's complete name, including the package.
+Also check (1) that the class is spelled correctly, and (2) that the class's .class file is in
+the current JVM's classpath.
+Cannot instantiate an object of "warszawaTest.DLTest$Test2" because it is not public.
+Cannot instantiate an object of "warszawaTest.DLTest$Test3" because it is abstract.
+Cannot instantiate an object of "warszawaTest.DLTest$TestI" because it is an interface.

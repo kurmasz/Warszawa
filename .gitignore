@@ -1,0 +1,13 @@
+.idea
+*.iml
+out
+BitBucket
+actual_output*
+dist
+.DS_Store
+*.swp
+tags
+*.class
+*~
+#*
+.rsync-filter

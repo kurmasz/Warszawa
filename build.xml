@@ -1,0 +1,157 @@
+<project name="Warszawa" basedir="." default="dist">
+
+   <!-- Setup ================================================== -->
+
+   <!-- version info -->
+   <property name="warszawa_version" value="1.0"/>
+
+   <!-- build info -->
+   <property name="src" location="src"/>
+   <property name="production_build" location="out/ant_production"/>
+   <property name="test_build" location="out/ant_test"/>
+   <property name="test_src" location="test"/>
+   <property name="test_list" value="**/*Test.java"/>
+   <property name="system_tests" value="SystemTests"/>
+
+   <property name="test_lib" value="test_lib"/>
+
+   <path id="compile.classpath">
+      <fileset dir="bundled_packages">
+         <include name="**/*.jar"/>
+      </fileset>
+   </path>
+
+   <path id="test.classpath">
+      <path refid="compile.classpath"/>
+      <pathelement location="${production_build}"/>
+      <pathelement location="${test_build}"/>
+      <fileset dir="test_lib">
+         <include name="**/*.jar"/>
+      </fileset>
+   </path>
+
+   <path id="javadoc.classpath">
+      <path refid="compile.classpath"/>
+   </path>
+
+   <!-- distribution info -->
+   <property name="dist" location="dist"/>
+   <property name="javadocs" value="${dist}/doc"/>
+   <property name="jarName" value="warszawa"/>
+
+
+   <target name="makedirs" description="Make any necessary directories">
+      <mkdir dir="${production_build}"/>
+      <mkdir dir="${test_build}"/>
+      <mkdir dir="${dist}"/>
+   </target>
+
+   <!-- Compile ================================================== -->
+   <target name="compile" description="compile source" depends="makedirs">
+      <javac srcdir="${src}" destdir="${production_build}" classpathref="compile.classpath" debug="off"
+             includeantruntime="false" encoding="UTF-8">
+         <compilerarg value="-Xlint:unchecked"/>
+      </javac>
+   </target>
+
+
+   <!-- Test stuff ================================================== -->
+   <target name="build_test" description="compile junit tests" depends="compile">
+      <javac srcdir="${test_src}" destdir="${test_build}" classpathref="test.classpath" debug="on"
+             includeantruntime="false" encoding="UTF-8"/>
+   </target>
+
+   <target name="test" depends="build_test">
+      <junit fork="yes" haltonfailure="yes">
+         <assertions enableSystemAssertions="true"/>
+
+         <!-- This is necessary for Java 7 on windows only -->
+         <!-- Hopefully there will come a time when it is no longer necessary -->
+         <jvmarg value="-XX:-UseSplitVerifier"/>
+
+         <batchtest fork="yes">
+            <fileset dir="${test_src}">
+               <include name="${test_list}"/>
+            </fileset>
+         </batchtest>
+         <formatter type="plain" usefile="false"/>
+         <classpath refid="test.classpath"/>
+      </junit>
+   </target>
+
+   <!-- javadoc =============================================== -->
+   <target name="doc" description="Javadoc documentation.">
+      <javadoc classpathref="javadoc.classpath" destdir="${javadocs}" access="public">
+         <fileset dir="${src}"/>
+      </javadoc>
+   </target>
+
+
+   <!-- public dist ================================================== -->
+
+   <!--- marcro to build a jar file with or without source. -->
+   <macrodef name="buildDist">
+      <attribute name="src" default="NOT SET"/>
+      <element name="addSrc" optional="yes"/>
+      <sequential>
+         <propertyfile file="${production_build}/edu/gvsu/kurmasz/warszawa/util/builddate.properties">
+            <entry key="builddate" value="now" type="date" pattern="yyyy.MM.dd HH.mm.ss"/>
+            <entry key="verson" value="${warszawa_version}"/>
+         </propertyfile>
+
+         <tstamp>
+            <format property="now" pattern="E MMM dd HH:mm:ss z yyyy"/>
+         </tstamp>
+         <echo file="${dist}/versionInfo"
+               message="Version ${warszawa_version} built at ${now}.${line.separator}"/>
+         <echo file="${system_tests}/expected_output/runJar"
+               message="Warszawa build date: ${now}.${line.separator}"/>
+
+         <jar destfile="${dist}/${jarName}-${warszawa_version}@{src}.jar">
+            <manifest>
+               <attribute name="Built-By" value="Zachary Kurmas"/>
+               <attribute name="Main-Class" value="edu.gvsu.kurmasz.warszawa.util.BuildDate"/>
+            </manifest>
+            <fileset dir="${dist}" includes="doc/**"/>
+            <zipgroupfileset dir="bundled_packages" includes="**/*.jar"/>
+            <fileset dir="${production_build}"/>
+            <addSrc/>
+            <!--- This element adds the source -->
+         </jar>
+      </sequential>
+   </macrodef>
+
+   <target name="dist_noTest" description="Jar file containing releasable warszawa class files only."
+           depends="compile">
+      <buildDist src=""/>
+      <!-- Don't include any source code -->
+   </target>
+
+   <target name="dist_class" description="Make jar file, but skip tests"
+           depends="test, doc, dist_noTest"/>
+
+   <target name="dist_src" description="Jar file containing releasable warszawa class and source."
+           depends="compile,test,doc">
+      <buildDist src="-src">  <!-- jar file name ends with src -->
+         <addSrc> <!-- add the following filesets to the .jar file -->
+            <fileset dir="${src}"/>
+         </addSrc>
+      </buildDist>
+   </target>
+
+   <target name="dist" description="Distribution 'public' Warszawa packages" depends="dist_class, dist_src"/>
+
+   <!-- clean ================================================== -->
+   <target name="clean" description="Delete class files and docs dir.">
+      <delete>
+         <!-- there shouldn't be any .class files here, but it happens -->
+         <fileset dir="${src}/" includes="**/*.class"/>
+
+         <fileset dir="${production_build}/" includes="**/*.class"/>
+         <fileset dir="${test_build}/" includes="**/*.class"/>
+
+         <fileset dir="${dist}/" includes="**"/>
+      </delete>
+   </target>
+
+</project>

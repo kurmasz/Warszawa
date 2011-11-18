@@ -1,0 +1,5 @@
+myInt: 91 theString: The String
+myInt: 71 theString: Another String
+myInt: 37 theString: Another String
+myInt: 76 theString: String number 3
+com.beust.jcommander.ParameterException: No such option:  --m
