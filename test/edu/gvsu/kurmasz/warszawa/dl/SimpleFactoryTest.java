@@ -16,7 +16,10 @@
  */
 package edu.gvsu.kurmasz.warszawa.dl;
 
+import dummy.DummyClass;
 import org.junit.*;
+
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Test the SimpleFactory class
@@ -27,13 +30,13 @@ import org.junit.*;
 // Created Jan 4, 2010
 public class SimpleFactoryTest {
 
-   public static <T> void verifyMakeException(String name, Class<T> parent_class,
-                                              Class<? extends Throwable> expected_exception,
-                                              String expected_message) {
+   private static <T> void verifyMakeException(String name, Class<T> parent_class,
+                                               Class<? extends Throwable> expected_exception,
+                                               String expected_message, final Object... params) {
       ClassFinderTest.verifyException(name, parent_class, expected_exception, expected_message,
             new ClassFinderTest.MethodRunner() {
                public <T> void run(String name, Class<T> parent_class) throws DLException {
-                  SimpleFactory.make(name, parent_class);
+                  SimpleFactory.make(name, parent_class, params);
                }
             });
    }
@@ -44,8 +47,8 @@ public class SimpleFactoryTest {
     *
     * @param name name of class to load
     */
-   public void verifyExceptionWhenClassNotPublic(String name) {
-      verifyMakeException(name, Object.class, IllegalAccessException.class,
+   private void verifyExceptionWhenClassNotAccessible(String name) {
+      verifyMakeException(name, Object.class, null,
             String.format(SimpleFactory.ILLEGAL_ACCESS_NONPUBLIC_CLASS, name));
    }
 
@@ -53,11 +56,37 @@ public class SimpleFactoryTest {
     * Verify that we get the correct error when we attempt to instantiate a class
     * whose nullary constructor is private
     *
-    * @param name name of class to load
+    * @param name   name of class to load
+    * @param params parameters to pass to the constructor
     */
-   public void verifyExceptionWhenConstructorNotPublic(String name) {
-      verifyMakeException(name, Object.class, IllegalAccessException.class,
-            String.format(SimpleFactory.ILLEGAL_ACCESS_PRIVATE_CONSTRUCTOR, name));
+   private void verifyExceptionWhenConstructorNotPublic(String name, Object... params) {
+      verifyMakeException(name, Object.class, NoSuchMethodException.class,
+            String.format(SimpleFactory.NO_SUCH_PUBLIC_CONSTRUCTOR, name), params);
+   }
+
+   /**
+    * Verify that we get the correct error when we attempt to instantiate a class
+    * whose nullary constructor is private
+    *
+    * @param name   name of class to load
+    * @param params parameters to pass to the constructor
+    */
+   private void verifyExceptionWhenNoAppropriateConstructor(String name, Object... params) {
+      verifyMakeException(name, Object.class, NoSuchMethodException.class,
+            String.format(SimpleFactory.NO_SUCH_PUBLIC_CONSTRUCTOR, name), params);
+   }
+
+
+   /**
+    * Verify that we get the correct error when we attempt to instantiate a class
+    * where multiple constructors match the given parameters.
+    *
+    * @param name   name of class to load
+    * @param params parameters to pass to the constructor
+    */
+   private void verifyExceptionWhenAmbiguousConstructor(String name, Object... params) {
+      verifyMakeException(name, Object.class, null,
+            String.format(SimpleFactory.MULTIPLE_CONSTRUCTORS_MATCH, name), params);
    }
 
    /**
@@ -66,8 +95,8 @@ public class SimpleFactoryTest {
     *
     * @param name name of class to load
     */
-   public void verifyExceptionWhenAbstract(String name) {
-      verifyMakeException(name, Object.class, InstantiationException.class,
+   private void verifyExceptionWhenAbstract(String name) {
+      verifyMakeException(name, Object.class, null,
             String.format(SimpleFactory.INSTANTIATION_EXCEPTION_ABSTRACT_CLASS, name));
    }
 
@@ -77,8 +106,8 @@ public class SimpleFactoryTest {
     *
     * @param name name of class to load
     */
-   public void verifyExceptionWhenInterface(String name) {
-      verifyMakeException(name, Object.class, InstantiationException.class,
+   private void verifyExceptionWhenInterface(String name) {
+      verifyMakeException(name, Object.class, null,
             String.format(SimpleFactory.INSTANTIATION_EXCEPTION_INTERFACE, name));
    }
 
@@ -89,8 +118,8 @@ public class SimpleFactoryTest {
     *
     * @param name name of class to load
     */
-   public void verifyNonStaticInner(String name) {
-      verifyMakeException(name, Object.class, InstantiationException.class,
+   private void verifyNonStaticInner(String name) {
+      verifyMakeException(name, Object.class, null,
             String.format(SimpleFactory.INSTANTIATION_EXCEPTION_NON_STATIC_INNER, name));
    }
 
@@ -100,9 +129,9 @@ public class SimpleFactoryTest {
     *
     * @param name name of class to load
     */
-   public void testNoDefaultConstructor(String name) {
-      verifyMakeException(name, Object.class, InstantiationException.class,
-            String.format(SimpleFactory.INSTANTIATION_EXCEPTION_NO_NULLARY, name));
+   private void testNoDefaultConstructor(String name) {
+      verifyMakeException(name, Object.class, NoSuchMethodException.class,
+            String.format(SimpleFactory.NO_SUCH_PUBLIC_CONSTRUCTOR, name));
    }
 
    /**
@@ -112,7 +141,7 @@ public class SimpleFactoryTest {
     * @param name              name of class to load
     * @param expectedException exception constructor will throw
     */
-   public void verifyBadConstructor(String name, Class<? extends Throwable> expectedException) {
+   private void verifyBadConstructor(String name, Class<? extends Throwable> expectedException) {
       verifyMakeException(name, Object.class, expectedException,
             String.format(SimpleFactory.EXCEPTION_FROM_CONSTRUCTOR, name));
    }
@@ -131,10 +160,10 @@ public class SimpleFactoryTest {
     * @param parent       return type for make
     * @throws DLException if things aren't set up correctly
     */
-   public void verifyCorrectClassInstantiated(String className, String fieldName, int expected_int,
-                                              Class<?> parent) throws DLException {
+   private void verifyCorrectClassInstantiated_inner(String className, String fieldName, int expected_int,
+                                                     Class<?> parent, Object... params) throws DLException {
 
-      Object o = SimpleFactory.make(className, parent);
+      Object o = SimpleFactory.make(className, parent, params);
       try {
          int value = o.getClass().getField(fieldName).getInt(o);
          Assert.assertEquals(expected_int, value);
@@ -143,13 +172,17 @@ public class SimpleFactoryTest {
       }
    }
 
-   public void verifyCorrectClassInstantiated(String className, String fieldName, int expected_int,
-                                              Class<?>... parents) throws DLException, ClassNotFoundException {
-      verifyCorrectClassInstantiated(className, fieldName, expected_int, Object.class);
-      verifyCorrectClassInstantiated(className, fieldName, expected_int, Class.forName(className));
+   private void verifyCorrectClassInstantiated(String className, String fieldName, int expected_int,
+                                               Class<?>... parents) throws DLException, ClassNotFoundException {
+      verifyCorrectClassInstantiated_inner(className, fieldName, expected_int, Object.class);
+      verifyCorrectClassInstantiated_inner(className, fieldName, expected_int, Class.forName(className));
       for (Class<?> parent : parents) {
-         verifyCorrectClassInstantiated(className, fieldName, expected_int, parent);
+         verifyCorrectClassInstantiated_inner(className, fieldName, expected_int, parent);
       }
+   }
+
+   private void verifyCorrectConstructorUsed(String className, String fieldName, int expected_int, Object... params) throws DLException {
+      verifyCorrectClassInstantiated_inner(className, fieldName, expected_int, Object.class, params);
    }
 
 
@@ -175,17 +208,28 @@ public class SimpleFactoryTest {
    }
 
    @Test
-   public void verifyExceptionsWhenClassNotPublic() throws Throwable {
-      verifyExceptionWhenClassNotPublic("ClassInDefaultPackage$InnerPrivate");
-      verifyExceptionWhenClassNotPublic("dummy.DummyClass$InnerProtectedStatic");
-      verifyExceptionWhenClassNotPublic("dummy.DummyClass$InnerPrivateStatic");
-      verifyExceptionWhenClassNotPublic("dummy.PrivateChildOfDummy");
+   public void verifyExceptionsWhenClassNotAccessible() throws Throwable {
+      verifyExceptionWhenClassNotAccessible("ClassInDefaultPackage$InnerDefault_ExplicitConstructor");
+      verifyExceptionWhenClassNotAccessible("ClassInDefaultPackage$InnerPrivate_DefaultConstructor");
+      verifyExceptionWhenClassNotAccessible("ClassInDefaultPackage$InnerPrivate_ExplicitConstructor");
+      verifyExceptionWhenClassNotAccessible("ClassInDefaultPackage$InnerPrivate_DefaultConstructor");
+
+      verifyExceptionWhenClassNotAccessible("dummy.DummyClass$InnerDefaultStatic_DefaultConstructor");
+      verifyExceptionWhenClassNotAccessible("dummy.DummyClass$InnerDefaultStatic_ExplicitConstructor");
+      verifyExceptionWhenClassNotAccessible("dummy.DummyClass$InnerPrivateStatic");
+      verifyExceptionWhenClassNotAccessible("dummy.DummyClass$InnerPrivateStatic_ExplicitConstructor");
+
+      verifyExceptionWhenClassNotAccessible("dummy.PrivateChildOfDummy_ExplicitConstructor");
+      verifyExceptionWhenClassNotAccessible("dummy.PrivateChildOfDummy_DefaultConstructor");
    }
 
    @Test
    public void verifyExceptionWhenNullaryConstructorNotPublic() throws Throwable {
-      verifyExceptionWhenConstructorNotPublic("dummy.ChildOfDummy_NoPublicConstructor");
-      verifyExceptionWhenConstructorNotPublic("dummy.ChildOfDummy_NoPublicNullaryConstructor");
+      verifyExceptionWhenConstructorNotPublic("dummy.ChildOfDummy_PrivateConstructorOnly");
+      verifyExceptionWhenConstructorNotPublic("dummy.ChildOfDummy_PackageProtectedConstructorOnly");
+      verifyExceptionWhenConstructorNotPublic("dummy.ChildOfDummy_ProtectedConstructorOnly");
+
+      verifyExceptionWhenConstructorNotPublic("dummy.ChildOfDummy_NullaryConstructorPrivate");
    }
 
    @Test
@@ -215,7 +259,7 @@ public class SimpleFactoryTest {
 
    @Test
    public void verifyExceptionWhenConstructorThrowsException() {
-      this.verifyBadConstructor("dummy.ClassWithBadConstructor", IllegalArgumentException.class);
+      this.verifyBadConstructor("dummy.ClassWithBadConstructor", InvocationTargetException.class);
    }
 
    @Test
@@ -240,7 +284,7 @@ public class SimpleFactoryTest {
       verifyCorrectClassInstantiated("Boolean", "boolean_DefaultPackage", 89);
       verifyCorrectClassInstantiated("Child2OfInnerDummyClass",
             "child2OfInnerDummyClass_DefaultPackage", 8934, Class
-            .forName("ClassInDefaultPackage$InnerProtected"));
+            .forName("ClassInDefaultPackage$InnerProtected_DefaultConstructor"));
       verifyCorrectClassInstantiated("ChildOfDummy", "childOfDummy_DefaultPackage", 892,
             Class.forName("DummyClass"));
       verifyCorrectClassInstantiated("ChildOfInnerDummyClass",
@@ -255,11 +299,8 @@ public class SimpleFactoryTest {
       verifyCorrectClassInstantiated("ClassInDefaultPackage", "classInDefaultPackage", 9);
       verifyCorrectClassInstantiated("ClassInDefaultPackage$InnerPublic",
             "innerPublic_classInDefaultPackage", 10);
-      verifyCorrectClassInstantiated("ClassInDefaultPackage$InnerProtected",
-            "innerProtected_classInDefaultPackage", 11);
-      // Can't instantiate because it's private
-      // verifyCorrectClassInstantiated("ClassInDefaultPackage$InnerPrivate",
-      // "innerPrivate_classInDefaultPackage", 12);
+      verifyCorrectClassInstantiated("ClassInDefaultPackage$InnerProtected_ExplicitConstructor",
+            "innerProtected_classInDefaultPackage", 121);
       verifyCorrectClassInstantiated("DummyClass", "dummyClass_DefaultPackage", 18);
    }
 
@@ -296,8 +337,9 @@ public class SimpleFactoryTest {
       dummy.DummyClass.InnerStatic d6 = SimpleFactory.make("dummy.DummyClass$InnerStatic", dummy.DummyClass.InnerStatic.class);
       Assert.assertEquals(934, d6.getMagicNumber());
 
-      // Can't do below, because class isn't public.
-      //verifyCorrectClassInstantiated("dummy.DummyClass$InnerProtectedStatic", "dummyClass_InnerProtectedStati", 222);
+
+      verifyCorrectClassInstantiated("dummy.DummyClass$InnerProtectedStatic_ExplicitConstructor",
+            "dummyClass_InnerProtectedStatic", 2221);
    }
 
    private static void printError(String name) {
@@ -310,7 +352,7 @@ public class SimpleFactoryTest {
    }
 
    public static void main(String[] args) {
-      printError("dummy.PrivateChildOfDummy");
+      printError("dummy.PrivateChildOfDummy_ExplicitConstructor");
       System.out.println();
       printError("ClassInDefaultPackage$InnerPrivate");
       System.out.println();
@@ -318,7 +360,7 @@ public class SimpleFactoryTest {
       System.out.println();
       printError("java.lang.Integer");
       System.out.println();
-      printError("dummy.ChildOfDummy_NoPublicNullaryConstructor");
+      printError("dummy.ChildOfDummy_NullaryConstructorPrivate");
       System.out.println();
       printError("dummy.DummyClass$InnerNonStatic");
       System.out.println();
@@ -339,4 +381,78 @@ public class SimpleFactoryTest {
         }
         */
    }
+
+
+   /////////////////////////////////////////////////////////////////////////////////////
+   //
+   // Test instantiating with parameters
+   //
+   ////////////////////////////////////////////////////////////////////////////////////
+
+   @Test
+   public void chosenConstructorIsNotPublic() throws Throwable {
+      verifyExceptionWhenConstructorNotPublic("dummy.ChildOfDummy_NoPublicConstructor", "String");
+      verifyExceptionWhenConstructorNotPublic("dummy.ChildOfDummy_NoPublicConstructor", 17);
+      verifyExceptionWhenConstructorNotPublic("dummy.ChildOfDummy_NoPublicConstructor", true);
+   }
+
+   @Test
+   public void noAppropriateConstructor() throws Throwable {
+      verifyExceptionWhenNoAppropriateConstructor("java.lang.String", 14);
+      verifyExceptionWhenNoAppropriateConstructor("java.lang.String", new Object());
+      verifyExceptionWhenNoAppropriateConstructor("java.lang.String", "Bob", "John");
+      verifyExceptionWhenNoAppropriateConstructor("java.lang.String", 14, "John");
+
+      verifyExceptionWhenNoAppropriateConstructor("dummy.MultiplePublicConstructors", 3, 4, 5);
+      verifyExceptionWhenNoAppropriateConstructor("dummy.MultiplePublicConstructors", "Torra", "Torra", "Torra");
+   }
+
+   @Test
+   public void correctConstructorCalled() throws Throwable {
+      verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 5);
+      verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 45, 15);
+      verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 30, 15.25);
+      verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 25, "25");
+
+      verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 12, 3, 4);
+      verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 27,
+            new Integer(3),
+            9);
+
+      verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 19, "5", "7");
+      verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 26, 5, "7");
+      verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 33, "5", 7);
+
+      // Although the first parameter is ambiguous, the presence of a second should fix this.
+      verifyCorrectConstructorUsed("dummy.Ambiguity1", "ambigValue", 51, 5, 9);
+   }
+
+   @Test
+   public void createNonStaticInner() throws Throwable {
+       verifyCorrectConstructorUsed("dummy.DummyClass$InnerNonStatic", "innerNonStatic", 8934,
+             new dummy.DummyClass());
+   }
+
+   @Test
+   public void selectsPublicVersion() throws Throwable {
+      // Make sure the public constructor is used instead of the more specific private constructor
+      verifyCorrectConstructorUsed("dummy.PublicPrivateMatchingConstructors", "multipleMatch", 94, 47);
+   }
+
+   @Test
+   public void selectsExactMatchIfMultipleMatches() throws Throwable {
+      verifyCorrectConstructorUsed("dummy.MultipleMatchWithOneExact", "multipleMatch2", 57, 19);
+
+   }
+
+   @Test
+   public void detectAmbiguity() throws Throwable {
+      verifyExceptionWhenAmbiguousConstructor("dummy.Ambiguity1", 17);
+
+      // Note:  Changing the type of the parameters doesn't help.  The
+      // algorithm uses the actutal type of the object, not the type of its variable
+      Number n = 17;
+      verifyExceptionWhenAmbiguousConstructor("dummy.Ambiguity1", n);
+   }
+
 }

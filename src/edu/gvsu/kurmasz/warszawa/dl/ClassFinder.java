@@ -52,7 +52,7 @@ public class ClassFinder {
     * Get the {@code Class} object for the named class and verify that {@code
     * className} is a subclass of {@code parentClass}. Internally this method
     * calls {@code Class.forName(String)}. (See
-    * {@link SimpleFactory#make(String, Class)} for a discussion of the purpose
+    * {@link SimpleFactory#make(String, Class, Object...)} for a discussion of the purpose
     * of {@code T} and {@code parentClass}.)
     *
     * @param <T>         The type of {@code parentClass}

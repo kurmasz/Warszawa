@@ -16,6 +16,7 @@
  */
 package edu.gvsu.kurmasz.warszawa.dl;
 
+import dummy.ChildOfDummy_PrivateConstructorOnly;
 import org.junit.*;
 
 /**
@@ -296,16 +297,16 @@ public class ClassFinderTest {
             dummy.Boolean.class);
       verifyClassFound("dummy.ChildOfProtectedInnerDummyClass",
             dummy.ChildOfProtectedInnerDummyClass.class, Object.class,
-            dummy.DummyClass.getIPS(),
+            dummy.DummyClass.getIPS_Default(),
             dummy.ChildOfProtectedInnerDummyClass.class);
       verifyClassFound("dummy.ChildOfDummy_NoDefaultConstructor",
             dummy.ChildOfDummy_NoDefaultConstructor.class, Object.class,
             dummy.DummyClass.class,
             dummy.ChildOfDummy_NoDefaultConstructor.class);
-      verifyClassFound("dummy.ChildOfDummy_NoPublicConstructor",
-            dummy.ChildOfDummy_NoPublicConstructor.class, Object.class,
+      verifyClassFound("dummy.ChildOfDummy_PrivateConstructorOnly",
+            ChildOfDummy_PrivateConstructorOnly.class, Object.class,
             dummy.DummyClass.class,
-            dummy.ChildOfDummy_NoPublicConstructor.class);
+            ChildOfDummy_PrivateConstructorOnly.class);
       verifyClassFound("dummy.ChildOfDummy", dummy.ChildOfDummy.class, Object.class,
             dummy.DummyClass.class, dummy.ChildOfDummy.class);
       verifyClassFound("dummy.DummyClass", dummy.DummyClass.class, Object.class,
@@ -314,7 +315,7 @@ public class ClassFinderTest {
             dummy.ChildOfInnerDummyClass.class, Object.class,
             dummy.DummyClass.InnerStatic.class,
             dummy.ChildOfInnerDummyClass.class);
-      verifyClassFound("dummy.PrivateChildOfDummy", dummy.DummyClass
+      verifyClassFound("dummy.PrivateChildOfDummy_ExplicitConstructor", dummy.DummyClass
             .getPrivateChild(), Object.class, dummy.DummyClass.class,
             dummy.DummyClass.getPrivateChild());
 
@@ -336,7 +337,7 @@ public class ClassFinderTest {
       //
       verifyDefaultPackageClassFound("Boolean");
       verifyDefaultPackageClassFound("Child2OfInnerDummyClass",
-            "ClassInDefaultPackage$InnerProtected");
+            "ClassInDefaultPackage$InnerProtected_DefaultConstructor");
       verifyDefaultPackageClassFound("ChildOfDummy", "DummyClass");
       verifyDefaultPackageClassFound("ChildOfInnerDummyClass",
             "ClassInDefaultPackage$InnerPublic");
@@ -378,8 +379,8 @@ public class ClassFinderTest {
       verifyClassFound("dummy.DummyClass$InnerStatic",
             dummy.DummyClass.InnerStatic.class, Object.class,
             dummy.DummyClass.InnerStatic.class);
-      verifyClassFound("dummy.DummyClass$InnerProtectedStatic", dummy.DummyClass
-            .getIPS(), Object.class, dummy.DummyClass.getIPS());
+      verifyClassFound("dummy.DummyClass$InnerProtectedStatic_DefaultConstructor", dummy.DummyClass
+            .getIPS_Default(), Object.class, dummy.DummyClass.getIPS_Default());
       verifyClassFound("dummy.DummyClass$InnerPrivateStatic", dummy.DummyClass
             .getInnerPrivateStatic(), Object.class, dummy.DummyClass
             .getInnerPrivateStatic());
@@ -389,8 +390,9 @@ public class ClassFinderTest {
             dummy.DummyClass.InnerNonStatic.class);
 
       verifyDefaultPackageClassFound("ClassInDefaultPackage$InnerPublic");
-      verifyDefaultPackageClassFound("ClassInDefaultPackage$InnerProtected");
-      verifyDefaultPackageClassFound("ClassInDefaultPackage$InnerPrivate");
+      verifyDefaultPackageClassFound("ClassInDefaultPackage$InnerProtected_DefaultConstructor");
+      verifyDefaultPackageClassFound("ClassInDefaultPackage$InnerDefault_DefaultConstructor");
+      verifyDefaultPackageClassFound("ClassInDefaultPackage$InnerPrivate_DefaultConstructor");
 
       // superclasses in different package.
       verifyClassFound("java.awt.im.InputSubset", java.awt.im.InputSubset.class,

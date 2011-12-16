@@ -1,0 +1,3 @@
+v1.1
+
++ Add the ability for SimpleFactory.make to call any public constructor.

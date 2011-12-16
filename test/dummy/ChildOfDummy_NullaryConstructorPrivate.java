@@ -1,5 +1,5 @@
 /**
- * Copyright (c) Zachary Kurmas 2007
+ * Copyright (c) Zachary Kurmas 2008
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation
@@ -14,13 +14,26 @@
  * COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
+package dummy;
+
 /****************************************************************
- * @author kurmasz
- *
+ * @author Zachary Kurmas
+ * 
  ****************************************************************/
-// (C) 2008 Zachary Kurmas
-// Created Jun 13, 2008
-public class Child2OfInnerDummyClass extends ClassInDefaultPackage.InnerProtected_DefaultConstructor
+// (C) 2010 Zachary Kurmas
+// Created Jan 4, 2010
+public class ChildOfDummy_NullaryConstructorPrivate extends DummyClass
 {
-	public int child2OfInnerDummyClass_DefaultPackage = 8934;
+	@SuppressWarnings("unused")
+	private ChildOfDummy_NullaryConstructorPrivate() {
+		childOfDummy_NoPublicConstructor_DummyPackage = 89;
+		return;
+	}
+
+	public ChildOfDummy_NullaryConstructorPrivate(int foo) {
+		childOfDummy_NoPublicConstructor_DummyPackage = foo;
+		return;
+	}
+	
+	public int childOfDummy_NoPublicConstructor_DummyPackage;
 }

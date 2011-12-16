@@ -16,17 +16,17 @@
  */
 package dummy;
 
-/****************************************************************
+/**
  * @author Zachary Kurmas
- *
- ****************************************************************/
-// (C) 2008 Zachary Kurmas
-// Created Jun 13, 2008
-public class ChildOfDummy_NoPublicConstructor extends DummyClass
-{
-	
-	private ChildOfDummy_NoPublicConstructor() { return;}
+ */
+// Created  12/16/11 at 1:59 PM
+// (C) Zachary Kurmas 2011
 
-	public int childOfDummy_NoPublicConstructor_DummyPackage = 89;
+public class ChildOfDummy_NoPublicConstructor extends DummyClass {
 
+   protected ChildOfDummy_NoPublicConstructor(String bob) {}
+
+   ChildOfDummy_NoPublicConstructor(int x) {};
+
+   private ChildOfDummy_NoPublicConstructor(boolean tf) {};
 }

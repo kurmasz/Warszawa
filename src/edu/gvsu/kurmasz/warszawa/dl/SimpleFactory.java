@@ -16,6 +16,8 @@
  */
 package edu.gvsu.kurmasz.warszawa.dl;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 
 /**
@@ -31,25 +33,40 @@ public class SimpleFactory {
    static final String BASE = "Cannot instantiate an object of \"%s\" because ";
    static final String ILLEGAL_ACCESS_NONPUBLIC_CLASS = BASE
          + "it is not public.";
-   static final String ILLEGAL_ACCESS_PRIVATE_CONSTRUCTOR = BASE
-         + "the constructor that takes no parameters is not public.";
+
    static final String INSTANTIATION_EXCEPTION_ABSTRACT_CLASS = BASE
          + "it is abstract.";
    static final String INSTANTIATION_EXCEPTION_INTERFACE = BASE
          + "it is an interface.";
-   static final String INSTANTIATION_EXCEPTION_NO_NULLARY = BASE
-         + "it is has no public constructors that take no parameters.";
-   static final String INSTANTIATION_EXCEPTION_NON_STATIC_INNER = BASE
-         + "it is a non-static inner class.  "
-         + "(Every constructor for a Non-static inner class implicitly takes "
-         + "the enclosing object as a parameter.)";
+
 
    private static final String UNKNOWN_REASON = BASE
-         + "Class.newInstance() threw a known exception for an unknown reason."
+         + "newInstance() threw a known exception for an unknown reason."
          + "(If this happens, please e-mail the developers so we can fix our code.)";
 
    static final String EXCEPTION_FROM_CONSTRUCTOR = BASE
          + "%1$s's constructor threw an exception.";
+
+   static final String MULTIPLE_CONSTRUCTORS_MATCH = BASE
+         + "%1$s has multiple constructors that match the given parameters.";
+
+   static final String NO_SUCH_PUBLIC_CONSTRUCTOR = BASE +
+         "%1$s does not have any public constructors that match the parameters given.";
+
+   static final String INSTANTIATION_EXCEPTION_NON_STATIC_INNER =
+         NO_SUCH_PUBLIC_CONSTRUCTOR
+               + " This class appears to be a non-static inner class.  "
+               + "Remember that every constructor for a Non-static inner class implicitly takes "
+               + "the enclosing object as a parameter.";
+
+   /*
+   No longer needed
+
+   static final String ILLEGAL_ACCESS_PRIVATE_CONSTRUCTOR = BASE
+         + "the constructor that takes no parameters is not public.";
+   static final String INSTANTIATION_EXCEPTION_NO_NULLARY = BASE
+         + "it is has no public constructors that take no parameters.";
+   */
 
    /**
     * Instantiate an object of type {@code name} and cast the new object to be
@@ -61,7 +78,7 @@ public class SimpleFactory {
     * "http://java.sun.com/docs/books/tutorial/java/generics/erasure.html">type
     * erasure</a>, we need the <code>Class</code> object of <code>T</code> as a
     * parameter to verify that the requested object is actually of type {@code
-    * T}. (This check is not strictkly necessary because if we don't have this {@code Class} object,
+    * T}. (This check is not strictly necessary because if we don't have this {@code Class} object,
     * and there is a type
     * mismatch, Java will eventually generate a <code>ClassCastException</code>
     * ; however, we prefer to find any such problems
@@ -80,15 +97,35 @@ public class SimpleFactory {
     * is a class that implements the <code>PluginInterface</code> interface.
     * </p>
     *
-    * @param <T>         A supertype of the object to be created
+    * <p>Two important limitations:</p>
+    * <ul>
+    * <li> This
+    * code does not search for the most specific match among several overload constructors.  It will
+    * simply throw an exception if more than one constructor could be called given the types of the
+    * actual parameters, but no one constructor matches exactly.</li>
+    *
+    * <li>You cannot directly pass primitive data to the constructor.  Any primitive data will be autoboxed.</li>
+    *
+    * </ul>
+    *
+    * <p>Note:  It is assumed that the class being dynamically loaded is not in the package {@code edu.gvsu.kurmasz
+    * .warszawa.dl}.  Therefore, it will automatically throw an exception if the user attempts to instantiate class
+    * with {@code private} or package-protected protection, even though that would normally be allowed for classes in
+    * the same package as {@code SimpleFactory}.  Other "overly aggressive" exceptions may be thrown for similar
+    * reasons when attempting to load classes in  {@code edu.gvsu.kurmasz
+    * .warszawa.dl}.
+    * </p>
+    *
+    * @param <T>         A super-type of the object to be created
     * @param name        The fully qualified name of the class to be instantiated
     * @param parentClass The {@code Class} object for {@code T} (needed to verify that
     *                    the cast from {@code Object} to {@code T} is safe).
+    * @param params      a list of parameters to the constructor
     * @return an instance of the desired object
     * @throws DLException              if anything goes wrong.
     * @throws IllegalArgumentException if {@code name} or {@code parentClass} are {@code null}
     */
-   public static <T> T make(String name, Class<T> parentClass)
+   public static <T> T make(String name, Class<T> parentClass, Object... params)
          throws DLException {
       //
       // Make sure neither parameter is null
@@ -115,44 +152,44 @@ public class SimpleFactory {
       String errorMessage = BASE;
 
       int modifiers = classObject.getModifiers();
+      if (Modifier.isInterface(modifiers)) {
+         throw new DLException(String.format(
+               INSTANTIATION_EXCEPTION_INTERFACE, fullClassName), null);
+      } else if (Modifier.isAbstract(modifiers)) {
+         throw new DLException(String.format(
+               INSTANTIATION_EXCEPTION_ABSTRACT_CLASS, fullClassName),
+               null);
+      } else if (!Modifier.isPublic(modifiers) && !Modifier.isProtected(modifiers)) {
+         throw new DLException(String.format(
+               ILLEGAL_ACCESS_NONPUBLIC_CLASS, fullClassName), null);
+      }
+
       T typedObject = null;
       try {
-         typedObject = classObject.newInstance();
+         typedObject = instantiate(classObject, params);
       } catch (ClassCastException e) {
          throw new DLException(errorMessage
                + "it is not a subtype of the template parameter.", e);
       } catch (IllegalAccessException e) {
-         if (!Modifier.isPublic(modifiers))
-            throw new DLException(String.format(
-                  ILLEGAL_ACCESS_NONPUBLIC_CLASS, fullClassName), e);
-         else if (!ClassFinder.hasPublicNullaryConstructor(classObject)) {
+         throw new DLException(String.format(UNKNOWN_REASON,
+               fullClassName), e);
+         /*
+         if (!ClassFinder.hasPublicNullaryConstructor(classObject)) {
             throw new DLException(String.format(
                   ILLEGAL_ACCESS_PRIVATE_CONSTRUCTOR, fullClassName), e);
          } else {
             throw new DLException(String.format(UNKNOWN_REASON,
                   fullClassName), e);
          }
+         */
       } catch (InstantiationException e2) {
-         if (Modifier.isInterface(modifiers)) {
+         /*
+         if (!ClassFinder.hasPublicNullaryConstructor(classObject)) {
             throw new DLException(String.format(
-                  INSTANTIATION_EXCEPTION_INTERFACE, fullClassName), e2);
-         } else if (Modifier.isAbstract(modifiers)) {
-            throw new DLException(String.format(
-                  INSTANTIATION_EXCEPTION_ABSTRACT_CLASS, fullClassName),
+                  INSTANTIATION_EXCEPTION_NO_NULLARY, fullClassName),
                   e2);
-         } else if (!ClassFinder.hasPublicNullaryConstructor(classObject)) {
-            if (!Modifier.isStatic(modifiers)
-                  && classObject.getEnclosingClass() != null) {
-               throw new DLException(String.format(
-                     INSTANTIATION_EXCEPTION_NON_STATIC_INNER,
-                     fullClassName), e2);
-            } else {
-               throw new DLException(String.format(
-                     INSTANTIATION_EXCEPTION_NO_NULLARY, fullClassName),
-                     e2);
-            }
          }
-
+         */
          // InstantiationExceptions can also get thrown for trying to
          // instantiate primitive types, void, or array types; but, I don't
          // think they can be specified using a string (I think you'd have to
@@ -169,7 +206,7 @@ public class SimpleFactory {
              */
          throw new DLException(String.format(UNKNOWN_REASON,
                fullClassName), e2);
-      } catch (Exception e3) {
+      } catch (InvocationTargetException e3) {
          // If this happens, it should be because the constructor of the
          // class being instantiated threw an exception.
 
@@ -178,5 +215,109 @@ public class SimpleFactory {
       }
 
       return typedObject;
+   }
+
+
+   /**
+    * Find the constructor whose parameter types match the types of the actual parameters <b>exactly</b>,
+    * then instantiate an object using that constructor.
+    *
+    * <p>{@code multipleMatches} specifies what should be done if the desired constructor is not found.  If
+    * {@code multipleMatches} is {@code false}, that means that any {@code NoSuchMethodException}s should be passed up the
+    * call stack back to the user.  In this case, the error indicates that none of this class's constructors will
+    * work given the actual parameters passed.  If {@code multipleMatches} is {@code true} that means that multiple
+    * constructors could be invoked given the actual parameters passed.  In this case,
+    * if there is one constructor whose parameters match exactly, we'll use it.  Otherwise,
+    * we want to pass a special exception message to the user letting her know that several constructors will work,
+    * but that this method is unable to decide which one is the most specific fit.</p>
+    *
+    * @param classObject     the {@code Class} object for the class to be instantiated.
+    * @param multipleMatches indicates how to handle a {@code NoSuchMethodException}.  See comment above.
+    * @param params          the list of parameters to pass to the constructor
+    * @return the newly instantiated object.
+    * @throws InvocationTargetException if {@code newInstance} throws this exception.
+    * @throws IllegalAccessException    if {@code newInstance} throws this exception.
+    * @throws InstantiationException    if {@code newInstance} throws this exception.
+    * @throws DLException               if no constructor matches the set of parameters given
+    */
+   private static <T> T instantiateFromExactMatch(Class<T> classObject, boolean multipleMatches,
+                                                  Object... params) throws InvocationTargetException, IllegalAccessException, InstantiationException, DLException {
+      Class<?>[] actualTypes = new Class<?>[params.length];
+      for (int i = 0; i < params.length; i++) {
+         actualTypes[i] = params[i].getClass();
+      }
+
+      try {
+         Constructor<T> constructor = classObject.getConstructor(actualTypes);
+         return constructor.newInstance(params);
+      } catch (NoSuchMethodException e) {
+         if (multipleMatches) {
+            throw new DLException(String.format(MULTIPLE_CONSTRUCTORS_MATCH, classObject.getName()), null);
+         } else if (!Modifier.isStatic(classObject.getModifiers())
+               && classObject.getEnclosingClass() != null) {
+            throw new DLException(String.format(
+                  INSTANTIATION_EXCEPTION_NON_STATIC_INNER,
+                  classObject.getName()), null);
+         } else {
+            throw new DLException(String.format(NO_SUCH_PUBLIC_CONSTRUCTOR, classObject.getName()), e);
+         }
+      }
+   }
+
+
+   /**
+    * Instantiate an instance of the class specified by {@code classObject} using the constructor for which the given
+    * parameters apply.   Note:  This method will throw an exception if more than one constructor is applicable and
+    * no constructor has parameters whose types exactly match the types of the actual parameters.
+    *
+    * @param classObject the {@code Class} object for the class to be instantiated.
+    * @param params      the list of parameters to pass to the constructor
+    * @return a new instance of the class specified by {@code classObject}
+    * @throws InvocationTargetException if {@code newInstance} throws this exception.
+    * @throws IllegalAccessException    if {@code newInstance} throws this exception.
+    * @throws InstantiationException    if {@code newInstance} throws this exception.
+    * @throws DLException               if no constructor matches the set of parameters given
+    */
+   private static <T> T instantiate(Class<T> classObject, Object... params) throws IllegalAccessException,
+         InstantiationException, InvocationTargetException, DLException {
+
+      // If there are no parameters, there is only one constructor that can possibly match:  The nullary constructor
+      if (params.length == 0) {
+         return instantiateFromExactMatch(classObject, false, params);
+      }
+
+
+      Constructor<?> matchingConstructor = null;
+      boolean multipleMatches = false;
+      for (Constructor<?> constructor : classObject.getConstructors()) {
+         Class<?>[] constructorParameterTypes = constructor.getParameterTypes();
+         boolean match = false;
+         if (constructorParameterTypes.length == params.length) {
+            match = true;
+            for (int i = 0; i < constructorParameterTypes.length; i++) {
+               if (!Util.convertToWrapper(constructorParameterTypes[i]).isAssignableFrom(params[i].getClass())) {
+                  match = false;
+                  i = constructorParameterTypes.length;
+               }
+            } // end inner for
+         }
+         if (match && matchingConstructor == null) {
+            matchingConstructor = constructor;
+         } else if (match) {
+            matchingConstructor = null;
+            multipleMatches = true;
+         }
+      } // end foreach constructor
+
+      if (matchingConstructor != null) {
+         try {
+            Constructor<T> constructor = classObject.getConstructor(matchingConstructor.getParameterTypes());
+            return constructor.newInstance(params);
+         } catch (NoSuchMethodException e) {
+            throw new DLException(String.format(UNKNOWN_REASON,
+                  classObject.getName()), e);
+         }
+      }
+      return instantiateFromExactMatch(classObject, multipleMatches, params);
    }
 }

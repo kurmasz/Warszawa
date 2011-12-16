@@ -16,74 +16,96 @@
  */
 package dummy;
 
-/****************************************************************
+/**
+ *
+ *
  * @author kurmasz
- * 
- ****************************************************************/
+ *
+ *
+ */
 // (C) 2008 Zachary Kurmas
 // Created Jun 12, 2008
-public class DummyClass
-{
-	public static class InnerStatic
-	{
-		public int dummyClass_InnerStatic = 934;
+public class DummyClass {
+   public static class InnerStatic {
+      public int dummyClass_InnerStatic = 934;
 
-		public int getMagicNumber()
-		{
-			return dummyClass_InnerStatic;
-		}
-	}
+      public int getMagicNumber() {
+         return dummyClass_InnerStatic;
+      }
+   }
 
-	protected static class InnerProtectedStatic
-	{
-		public int dummyClass_InnerProtectedStatic = 222;
+   @SuppressWarnings("unused")
+   protected static class InnerProtectedStatic_DefaultConstructor {
+      public int dummyClass_InnerProtectedStatic = 222;
+   }
 
-	}
+   @SuppressWarnings("unused")
+   protected static class InnerProtectedStatic_ExplicitConstructor {
+      public int dummyClass_InnerProtectedStatic = 2221;
 
-	private static class InnerPrivateStatic
-	{
-		public int dummyClass_InnerPrivateStatic = 242;
+      public InnerProtectedStatic_ExplicitConstructor() {
+      }
+   }
 
-	}
+   @SuppressWarnings("unused")
+   static class InnerDefaultStatic_DefaultConstructor {
+      public int dummyClass_InnerProtectedStatic = 223;
+   }
 
-	public class InnerNonStatic
-	{
-		public int innerNonStatic;
+   @SuppressWarnings("unused")
+   static class InnerDefaultStatic_ExplicitConstructor {
+      public int dummyClass_InnerProtectedStatic = 2231;
 
-		public InnerNonStatic() {
-			innerNonStatic = 8934;
-		}
-	}
+      public InnerDefaultStatic_ExplicitConstructor() {
+      }
+   }
 
-	public int dummyClass_DummyPackage = 90;
+   @SuppressWarnings("unused")
+   private static class InnerPrivateStatic {
+      public int dummyClass_InnerPrivateStatic = 242;
+   }
 
-	public DummyClass() {
-		return;
-	}
+   @SuppressWarnings("unused")
+   private static class InnerPrivateStatic_ExplicitConstructor {
+      public int dummyClass_InnerPrivateStatic = 242;
 
-	public int getMagicNumber()
-	{
-		return dummyClass_DummyPackage;
-	}
+      public InnerPrivateStatic_ExplicitConstructor() {
+      }
+   }
 
-	public String toString()
-	{
-		return "Running class " + this.getClass().getName();
-	}
+   public class InnerNonStatic {
+      public int innerNonStatic;
 
-	public static Class<?> getPrivateChild()
-	{
-		return PrivateChildOfDummy.class;
-	}
+      public InnerNonStatic() {
+         innerNonStatic = 8934;
+      }
+   }
 
-	public static Class<?> getIPS()
-	{
-		return InnerProtectedStatic.class;
-	}
+   public int dummyClass_DummyPackage = 90;
 
-	public static Class<?> getInnerPrivateStatic()
-	{
-		return InnerPrivateStatic.class;
-	}
+   public DummyClass() {
+      return;
+   }
+
+   public int getMagicNumber() {
+      return dummyClass_DummyPackage;
+   }
+
+   public String toString() {
+      return "Running class " + this.getClass().getName();
+   }
+
+   public static Class<?> getPrivateChild() {
+      return PrivateChildOfDummy_ExplicitConstructor.class;
+   }
+
+
+   public static Class<?> getIPS_Default() {
+      return InnerProtectedStatic_DefaultConstructor.class;
+   }
+
+   public static Class<?> getInnerPrivateStatic() {
+      return InnerPrivateStatic.class;
+   }
 
 }

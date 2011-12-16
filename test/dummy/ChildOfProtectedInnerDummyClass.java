@@ -22,7 +22,7 @@ package dummy;
  ****************************************************************/
 // (C) 2008 Zachary Kurmas
 // Created Jun 13, 2008
-public class ChildOfProtectedInnerDummyClass extends DummyClass.InnerProtectedStatic
+public class ChildOfProtectedInnerDummyClass extends DummyClass.InnerProtectedStatic_DefaultConstructor
 {
 	public int childOfProtectedInnerDummyClass_DummyPackage = 1967;
 }
