@@ -16,10 +16,11 @@
  */
 package edu.gvsu.kurmasz.warszawa.dl;
 
-import dummy.DummyClass;
 import org.junit.*;
 
 import java.lang.reflect.InvocationTargetException;
+
+import static edu.gvsu.kurmasz.warszawa.dl.SimpleFactory.make;
 
 /**
  * Test the SimpleFactory class
@@ -32,14 +33,32 @@ public class SimpleFactoryTest {
 
    private static <T> void verifyMakeException(String name, Class<T> parent_class,
                                                Class<? extends Throwable> expected_exception,
-                                               String expected_message, final Object... params) {
+                                               String expected_message,
+                                               final Object... params) {
+      // Verify that we get the expected exception regardless of whether rethrowRuntime is true or false
+
       ClassFinderTest.verifyException(name, parent_class, expected_exception, expected_message,
             new ClassFinderTest.MethodRunner() {
                public <T> void run(String name, Class<T> parent_class) throws DLException {
-                  SimpleFactory.make(name, parent_class, params);
+                  make(name, parent_class, false, params);
+               }
+            });
+
+      ClassFinderTest.verifyException(name, parent_class, expected_exception, expected_message,
+            new ClassFinderTest.MethodRunner() {
+               public <T> void run(String name, Class<T> parent_class) throws DLException {
+                  make(name, parent_class, true, params);
+               }
+            });
+
+      ClassFinderTest.verifyException(name, parent_class, expected_exception, expected_message,
+            new ClassFinderTest.MethodRunner() {
+               public <T> void run(String name, Class<T> parent_class) throws DLException {
+                  make(name, parent_class, params);
                }
             });
    }
+
 
    /**
     * Verify that we get the correct error when we attempt to instantiate a class that
@@ -142,8 +161,21 @@ public class SimpleFactoryTest {
     * @param expectedException exception constructor will throw
     */
    private void verifyBadConstructor(String name, Class<? extends Throwable> expectedException) {
-      verifyMakeException(name, Object.class, expectedException,
-            String.format(SimpleFactory.EXCEPTION_FROM_CONSTRUCTOR, name));
+      String expected_message = String.format(SimpleFactory.EXCEPTION_FROM_CONSTRUCTOR, name);
+
+      ClassFinderTest.verifyException(name, Object.class, expectedException, expected_message,
+            new ClassFinderTest.MethodRunner() {
+               public <T> void run(String name, Class<T> parent_class) throws DLException {
+                  make(name, parent_class, false);
+               }
+            });
+
+      ClassFinderTest.verifyException(name, Object.class, expectedException, expected_message,
+            new ClassFinderTest.MethodRunner() {
+               public <T> void run(String name, Class<T> parent_class) throws DLException {
+                  make(name, parent_class);
+               }
+            });
    }
 
    /**
@@ -163,7 +195,7 @@ public class SimpleFactoryTest {
    private void verifyCorrectClassInstantiated_inner(String className, String fieldName, int expected_int,
                                                      Class<?> parent, Object... params) throws DLException {
 
-      Object o = SimpleFactory.make(className, parent, params);
+      Object o = make(className, parent, false, params);
       try {
          int value = o.getClass().getField(fieldName).getInt(o);
          Assert.assertEquals(expected_int, value);
@@ -194,17 +226,27 @@ public class SimpleFactoryTest {
 
    @Test(expected = IllegalArgumentException.class)
    public void makeThrowsExceptionIfNameIsNull() throws Throwable {
-      SimpleFactory.make(null, Object.class);
+      make(null, Object.class, false);
    }
 
    @Test(expected = IllegalArgumentException.class)
    public void makeThrowsExceptionIfParentClassIsNull() throws Throwable {
-      SimpleFactory.make("fred", null);
+      make("fred", null, false);
    }
 
    @Test(expected = DLException.class)
    public void throwsExceptionFromFindClass() throws Throwable {
-      SimpleFactory.make("noSuchClass.a.b.c", Object.class);
+      make("noSuchClass.a.b.c", Object.class, false);
+   }
+
+   @Test(expected = DLException.class)
+   public void throwsExceptionFromFindClass2() throws Throwable {
+      make("noSuchClass.a.b.c", Object.class, true);
+   }
+
+   @Test(expected = DLException.class)
+   public void throwsExceptionFromFindClass3() throws Throwable {
+      make("noSuchClass.a.b.c", Object.class);
    }
 
    @Test
@@ -262,19 +304,55 @@ public class SimpleFactoryTest {
       this.verifyBadConstructor("dummy.ClassWithBadConstructor", InvocationTargetException.class);
    }
 
+   @Test(expected = IllegalArgumentException.class)
+   public void verifyRuntimeExceptionWhenConstructorPassesRuntimeExceptions() throws DLException {
+      make("dummy.ClassWithBadConstructor", Object.class, true);
+   }
+
+   @Test
+   public void verifyCheckedExcpetionNotRethrown() throws Throwable {
+      this.verifyBadConstructor("dummy.ClassWithBadCheckedConstructor", InvocationTargetException.class);
+   }
+
    @Test
    public void canLoadStringAsString() throws Throwable {
-      String s = SimpleFactory.make("java.lang.String",
-            java.lang.String.class);
+      String s = make("java.lang.String", java.lang.String.class, false);
+      Assert.assertEquals("", s);
+   }
+
+   @Test
+   public void canLoadStringAsString2() throws Throwable {
+      String s = make("java.lang.String", java.lang.String.class, true);
+      Assert.assertEquals("", s);
+   }
+
+   @Test
+   public void canLoadStringAsString3() throws Throwable {
+      String s = make("java.lang.String", java.lang.String.class);
       Assert.assertEquals("", s);
    }
 
    @Test
    public void canLoadStringAsComparable() throws Throwable {
       @SuppressWarnings("unchecked")
-      Comparable<String> comparable = (Comparable<String>) SimpleFactory.make("java.lang.String", Comparable.class);
+      Comparable<String> comparable = (Comparable<String>) make("java.lang.String", Comparable.class, false);
       Assert.assertEquals(0, comparable.compareTo(""));
    }
+
+    @Test
+   public void canLoadStringAsComparable2() throws Throwable {
+      @SuppressWarnings("unchecked")
+      Comparable<String> comparable = (Comparable<String>) make("java.lang.String", Comparable.class, true);
+      Assert.assertEquals(0, comparable.compareTo(""));
+   }
+
+    @Test
+   public void canLoadStringAsComparable3() throws Throwable {
+      @SuppressWarnings("unchecked")
+      Comparable<String> comparable = (Comparable<String>) make("java.lang.String", Comparable.class);
+      Assert.assertEquals(0, comparable.compareTo(""));
+   }
+
 
    @Test
    public void correctClassInstantiatedFromDefaultPackage() throws DLException, ClassNotFoundException {
@@ -291,10 +369,17 @@ public class SimpleFactoryTest {
             "childOfInnerDummyClass_DefaultPackage", 9067,
             Class.forName("ClassInDefaultPackage$InnerPublic"));
 
-      dummy.DummyClass.InnerStatic t1 = SimpleFactory.make(
-            "ChildOfNamedPackageInnerClass",
-            dummy.DummyClass.InnerStatic.class);
+      dummy.DummyClass.InnerStatic t1 = make("ChildOfNamedPackageInnerClass",
+            dummy.DummyClass.InnerStatic.class, false);
       Assert.assertEquals(7743, t1.getMagicNumber());
+
+       dummy.DummyClass.InnerStatic t1b = make("ChildOfNamedPackageInnerClass",
+            dummy.DummyClass.InnerStatic.class, true);
+      Assert.assertEquals(7743, t1b.getMagicNumber());
+
+       dummy.DummyClass.InnerStatic t1c = make("ChildOfNamedPackageInnerClass",
+            dummy.DummyClass.InnerStatic.class);
+      Assert.assertEquals(7743, t1c.getMagicNumber());
 
       verifyCorrectClassInstantiated("ClassInDefaultPackage", "classInDefaultPackage", 9);
       verifyCorrectClassInstantiated("ClassInDefaultPackage$InnerPublic",
@@ -307,34 +392,35 @@ public class SimpleFactoryTest {
    @Test
    public void correctClassInstantiatedFromNonDefaultPackage() throws DLException, ClassNotFoundException {
 
-      dummy.Boolean b1 = SimpleFactory.make("dummy.Boolean", dummy.Boolean.class);
+      dummy.Boolean b1 = make("dummy.Boolean", dummy.Boolean.class, false);
       Assert.assertEquals(89, b1.boolean_DummyPackage);
 
-      dummy.ChildOfProtectedInnerDummyClass c1 = SimpleFactory.make(
+      dummy.ChildOfProtectedInnerDummyClass c1 = make(
             "dummy.ChildOfProtectedInnerDummyClass",
-            dummy.ChildOfProtectedInnerDummyClass.class);
+            dummy.ChildOfProtectedInnerDummyClass.class, false);
       Assert.assertEquals(1967, c1.childOfProtectedInnerDummyClass_DummyPackage);
 
-      dummy.ChildOfDummy c2 = SimpleFactory.make("dummy.ChildOfDummy", dummy.ChildOfDummy.class);
+      dummy.ChildOfDummy c2 = make("dummy.ChildOfDummy", dummy.ChildOfDummy.class, false);
       Assert.assertEquals(7357, c2.getMagicNumber());
 
-      dummy.DummyClass c3 = SimpleFactory.make("dummy.ChildOfDummy", dummy.DummyClass.class);
+      dummy.DummyClass c3 = make("dummy.ChildOfDummy", dummy.DummyClass.class, false);
       Assert.assertEquals(7357, c3.getMagicNumber());
 
-      dummy.DummyClass c4 = SimpleFactory.make("dummy.DummyClass", dummy.DummyClass.class);
+      dummy.DummyClass c4 = make("dummy.DummyClass", dummy.DummyClass.class, false);
       Assert.assertEquals(90, c4.getMagicNumber());
 
-      dummy.ChildOfInnerDummyClass d4 = SimpleFactory.make(
+      dummy.ChildOfInnerDummyClass d4 = make(
             "dummy.ChildOfInnerDummyClass",
-            dummy.ChildOfInnerDummyClass.class);
+            dummy.ChildOfInnerDummyClass.class, false);
       Assert.assertEquals(909, d4.getMagicNumber());
 
-      dummy.DummyClass.InnerStatic d5 = SimpleFactory.make(
+      dummy.DummyClass.InnerStatic d5 = make(
             "dummy.ChildOfInnerDummyClass",
-            dummy.DummyClass.InnerStatic.class);
+            dummy.DummyClass.InnerStatic.class, false);
       Assert.assertEquals(909, d5.getMagicNumber());
 
-      dummy.DummyClass.InnerStatic d6 = SimpleFactory.make("dummy.DummyClass$InnerStatic", dummy.DummyClass.InnerStatic.class);
+      dummy.DummyClass.InnerStatic d6 = make("dummy.DummyClass$InnerStatic",
+            dummy.DummyClass.InnerStatic.class, false);
       Assert.assertEquals(934, d6.getMagicNumber());
 
 
@@ -344,7 +430,7 @@ public class SimpleFactoryTest {
 
    private static void printError(String name) {
       try {
-         SimpleFactory.make(name, Object.class);
+         make(name, Object.class, false);
       } catch (DLException e) {
          System.out.println(e.getMessage());
          System.out.println(e.getCause());
@@ -416,8 +502,7 @@ public class SimpleFactoryTest {
 
       verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 12, 3, 4);
       verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 27,
-            new Integer(3),
-            9);
+            new Integer(3), 9);
 
       verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 19, "5", "7");
       verifyCorrectConstructorUsed("dummy.MultiplePublicConstructors", "multiplePublicConstructors", 26, 5, "7");
@@ -429,8 +514,8 @@ public class SimpleFactoryTest {
 
    @Test
    public void createNonStaticInner() throws Throwable {
-       verifyCorrectConstructorUsed("dummy.DummyClass$InnerNonStatic", "innerNonStatic", 8934,
-             new dummy.DummyClass());
+      verifyCorrectConstructorUsed("dummy.DummyClass$InnerNonStatic", "innerNonStatic", 8934,
+            new dummy.DummyClass());
    }
 
    @Test

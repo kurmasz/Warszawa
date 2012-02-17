@@ -3,11 +3,9 @@ package edu.gvsu.kurmasz.warszawa.dl;
 import org.junit.Test;
 
 import java.lang.Boolean;
-import java.sql.SQLTransactionRollbackException;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
 /**
