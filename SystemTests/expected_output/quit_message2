@@ -1,0 +1,3 @@
+Cannot instantiate class no.such.class.InThisPackage and assign it to java.lang.Object because Class "no.such.class.InThisPackage" was not found. Be sure to specify the class's complete name, including the package.
+Also check (1) that the class is spelled correctly, and (2) that the class's .class file is in
+the current JVM's classpath.

@@ -11,7 +11,7 @@
 #
 # Variables
 #
-jar=../dist/warszawa-1.1.jar
+jar=../dist/warszawa-1.3.jar
 actual_output=actual_output
 
 #

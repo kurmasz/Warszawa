@@ -16,6 +16,7 @@
  */
 package warszawaTest;
 
+import edu.gvsu.kurmasz.warszawa.dl.SimpleFactory;
 import edu.gvsu.kurmasz.warszawa.io.InputHelper;
 
 import java.io.FileNotFoundException;
@@ -52,6 +53,18 @@ public class VerifyQuit {
    public void testOpenFilteredInputStreamOrQuit(int exit_code) throws FileNotFoundException {
       PrintStream alt = new PrintStream(new FileOutputStream(SystemTest.output("quit_message1")));
       InputHelper.openFilteredInputStreamOrQuit("anotherFileThatDoesntExist", null, alt, exit_code);
+   }
+
+   @Quitter
+   public void testMakeOrQuit1(int exit_code) throws FileNotFoundException {
+      PrintStream alt = new PrintStream(new FileOutputStream(SystemTest.output("quit_message2")));
+      SimpleFactory.makeOrQuit("no.such.class.InThisPackage", Object.class, true, alt, exit_code );
+   }
+
+   @Quitter
+   public void testMakeOrQuit2(int exit_code) throws FileNotFoundException {
+      PrintStream alt = new PrintStream(new FileOutputStream(SystemTest.output("quit_message3")));
+      SimpleFactory.makeOrQuit("java.lang.String", Integer.class, alt, exit_code );
    }
 
 

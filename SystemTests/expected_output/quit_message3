@@ -1,0 +1,2 @@
+Cannot instantiate class java.lang.String and assign it to java.lang.Integer because Class "java.lang.String" is not assignable to type "java.lang.Integer".
+(This means that java.lang.String does not extend or implement java.lang.Integer.)
