@@ -21,6 +21,9 @@ import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
+import static edu.gvsu.kurmasz.warszawa.Warszawa.DEFAULT_ERROR_STREAM;
+import static edu.gvsu.kurmasz.warszawa.Warszawa.DEFAULT_EXIT_VALUE;
+
 /**
  * Shortcuts for opening {@code PrintWriter}s.  In particular, this class contains shortcuts for
  * <ul>
@@ -38,15 +41,6 @@ import java.util.Map;
 
 public class OutputHelper {
 
-   /**
-    * Error messages are written here by default.
-    */
-   public static final PrintStream DEFAULT_ERROR_STREAM = System.err;
-
-   /**
-    * Value passed to {@code System.exit} by default
-    */
-   public static final int DEFAULT_EXIT_VALUE = 1;
 
    private static final boolean DEFAULT_AUTOFLUSH = false;
 

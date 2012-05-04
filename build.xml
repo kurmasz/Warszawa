@@ -3,7 +3,7 @@
    <!-- Setup ================================================== -->
 
    <!-- version info -->
-   <property name="warszawa_version" value="1.1"/>
+   <property name="warszawa_version" value="1.3"/>
 
    <!-- build info -->
    <property name="src" location="src"/>
@@ -11,6 +11,7 @@
    <property name="test_build" location="out/ant_test"/>
    <property name="test_src" location="test"/>
    <property name="test_list" value="**/*Test.java"/>
+   <property name="test_resources" value="test_resources"/>
    <property name="system_tests" value="SystemTests"/>
 
    <property name="test_lib" value="test_lib"/>
@@ -25,6 +26,7 @@
       <path refid="compile.classpath"/>
       <pathelement location="${production_build}"/>
       <pathelement location="${test_build}"/>
+      <pathelement location="${test_resources}"/>
       <fileset dir="test_lib">
          <include name="**/*.jar"/>
       </fileset>
@@ -94,9 +96,9 @@
       <attribute name="src" default="NOT SET"/>
       <element name="addSrc" optional="yes"/>
       <sequential>
-         <propertyfile file="${production_build}/edu/gvsu/kurmasz/warszawa/util/builddate.properties">
+         <propertyfile file="${production_build}/edu/gvsu/kurmasz/warszawa/buildInfo.properties">
             <entry key="builddate" value="now" type="date" pattern="yyyy.MM.dd HH.mm.ss"/>
-            <entry key="verson" value="${warszawa_version}"/>
+            <entry key="version" value="${warszawa_version}"/>
          </propertyfile>
 
          <tstamp>
@@ -105,12 +107,12 @@
          <echo file="${dist}/versionInfo"
                message="Version ${warszawa_version} built at ${now}.${line.separator}"/>
          <echo file="${system_tests}/expected_output/runJar"
-               message="Warszawa build date: ${now}.${line.separator}"/>
+               message="Warszawa version ${warszawa_version} built ${now}.${line.separator}"/>
 
          <jar destfile="${dist}/${jarName}-${warszawa_version}@{src}.jar">
             <manifest>
                <attribute name="Built-By" value="Zachary Kurmas"/>
-               <attribute name="Main-Class" value="edu.gvsu.kurmasz.warszawa.util.BuildDate"/>
+               <attribute name="Main-Class" value="edu.gvsu.kurmasz.warszawa.Warszawa"/>
             </manifest>
             <fileset dir="${dist}" includes="doc/**"/>
             <zipgroupfileset dir="bundled_packages" includes="**/*.jar"/>

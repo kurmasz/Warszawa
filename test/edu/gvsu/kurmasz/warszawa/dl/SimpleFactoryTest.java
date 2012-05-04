@@ -339,14 +339,14 @@ public class SimpleFactoryTest {
       Assert.assertEquals(0, comparable.compareTo(""));
    }
 
-    @Test
+   @Test
    public void canLoadStringAsComparable2() throws Throwable {
       @SuppressWarnings("unchecked")
       Comparable<String> comparable = (Comparable<String>) make("java.lang.String", Comparable.class, true);
       Assert.assertEquals(0, comparable.compareTo(""));
    }
 
-    @Test
+   @Test
    public void canLoadStringAsComparable3() throws Throwable {
       @SuppressWarnings("unchecked")
       Comparable<String> comparable = (Comparable<String>) make("java.lang.String", Comparable.class);
@@ -373,11 +373,11 @@ public class SimpleFactoryTest {
             dummy.DummyClass.InnerStatic.class, false);
       Assert.assertEquals(7743, t1.getMagicNumber());
 
-       dummy.DummyClass.InnerStatic t1b = make("ChildOfNamedPackageInnerClass",
+      dummy.DummyClass.InnerStatic t1b = make("ChildOfNamedPackageInnerClass",
             dummy.DummyClass.InnerStatic.class, true);
       Assert.assertEquals(7743, t1b.getMagicNumber());
 
-       dummy.DummyClass.InnerStatic t1c = make("ChildOfNamedPackageInnerClass",
+      dummy.DummyClass.InnerStatic t1c = make("ChildOfNamedPackageInnerClass",
             dummy.DummyClass.InnerStatic.class);
       Assert.assertEquals(7743, t1c.getMagicNumber());
 
@@ -527,7 +527,6 @@ public class SimpleFactoryTest {
    @Test
    public void selectsExactMatchIfMultipleMatches() throws Throwable {
       verifyCorrectConstructorUsed("dummy.MultipleMatchWithOneExact", "multipleMatch2", 57, 19);
-
    }
 
    @Test
@@ -538,6 +537,22 @@ public class SimpleFactoryTest {
       // algorithm uses the actutal type of the object, not the type of its variable
       Number n = 17;
       verifyExceptionWhenAmbiguousConstructor("dummy.Ambiguity1", n);
+   }
+
+   @Test(expected = DLException.class)
+   public void createWithNullParameter1() throws Throwable {
+      SimpleFactory.make("dummy.MultiplePublicConstructors", Object.class, 5, null);
+   }
+
+   @Test(expected = DLException.class)
+   public void createWithNullParameter2() throws Throwable {
+      SimpleFactory.make("dummy.MultiplePublicConstructors", Object.class, (Object) null);
+   }
+
+   @SuppressWarnings("all")
+   @Test(expected = IllegalArgumentException.class)
+   public void createWithNullParameterList() throws Throwable {
+      SimpleFactory.make("dummy.MultiplePublicConstructors", Object.class, (Object[]) null);
    }
 
 }

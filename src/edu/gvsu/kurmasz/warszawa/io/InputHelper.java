@@ -22,6 +22,9 @@ import java.io.*;
 import java.util.HashMap;
 import java.util.Map;
 
+import static edu.gvsu.kurmasz.warszawa.Warszawa.DEFAULT_ERROR_STREAM;
+import static edu.gvsu.kurmasz.warszawa.Warszawa.DEFAULT_EXIT_VALUE;
+
 /**
  * Shortcuts for opening {@code InputStream}s.  In particular, this class contains shortcuts for:
  * <ul>
@@ -82,16 +85,6 @@ public class InputHelper {
 
    private InputHelper() {
    }
-
-   /**
-    * Error messages are written here by default.
-    */
-   public static final PrintStream DEFAULT_ERROR_STREAM = OutputHelper.DEFAULT_ERROR_STREAM;
-
-   /**
-    * Value passed to {@code System.exit} by default.
-    */
-   public static final int DEFAULT_EXIT_VALUE = OutputHelper.DEFAULT_EXIT_VALUE;
 
    /**
     * An immutable copy of the map returned by {@link #makeDefaultInputStreamMap()}
@@ -436,6 +429,9 @@ public class InputHelper {
          return null;
       } catch (FilterFactory.FilterFactoryException e) {
          quit(filename, error, exitValue, e);
+
+         // Quit calls System.exit(0), so this line of code should never run.
+         assert false : "This line of code should never run.";
          return null;
       }
    }
@@ -473,8 +469,8 @@ public class InputHelper {
    public static InputStream openInputStreamOrQuit(String filename,
                                                    Map<String, InputStream> streamMap,
                                                    Map<String, FilterFactory> filterMap) {
-      return openInputStreamOrQuit(filename, streamMap, filterMap, InputHelper.DEFAULT_ERROR_STREAM,
-            InputHelper.DEFAULT_EXIT_VALUE);
+      return openInputStreamOrQuit(filename, streamMap, filterMap, DEFAULT_ERROR_STREAM,
+            DEFAULT_EXIT_VALUE);
    }
 
 
@@ -504,8 +500,8 @@ public class InputHelper {
     * @return either the {@code InputStream} in {@code streamMap}, or a new, possibly filtered, {@code InputStream}.
     */
    public static InputStream openMappedAndFilteredInputStreamOrQuit(final String filename) {
-      return openMappedAndFilteredInputStreamOrQuit(filename, InputHelper.DEFAULT_ERROR_STREAM,
-            InputHelper.DEFAULT_EXIT_VALUE);
+      return openMappedAndFilteredInputStreamOrQuit(filename, DEFAULT_ERROR_STREAM,
+           DEFAULT_EXIT_VALUE);
    }
 
 
@@ -672,7 +668,7 @@ public class InputHelper {
     * @return either the {@code InputStream} in {@code streamMap}, or a new, possibly filtered, {@code InputStream}.
     */
    public static InputStream openInputStreamOrQuit(final File file, final Map<String, FilterFactory> filterMap) {
-      return openInputStreamOrQuit(file, filterMap, InputHelper.DEFAULT_ERROR_STREAM, InputHelper.DEFAULT_EXIT_VALUE);
+      return openInputStreamOrQuit(file, filterMap, DEFAULT_ERROR_STREAM, DEFAULT_EXIT_VALUE);
    }
 
    /**

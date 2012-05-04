@@ -16,6 +16,9 @@
  */
 package edu.gvsu.kurmasz.warszawa.util;
 
+import com.sun.xml.internal.rngom.ast.builder.BuildException;
+import org.omg.CORBA.DynAnyPackage.Invalid;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
@@ -24,49 +27,75 @@ import java.util.Date;
 import java.util.Properties;
 
 /**
- * Methods that return information about when a particular package was last
- * built. They rely on the build date being stored in a properties file with a known
+ * Build information about a package, including version number and build date.
+ * This class relies on the build info being stored in a properties file with a known
  * name. (One way to do this is to have ant update the file.)
  *
  * @author Zachary Kurmas
- *
- * @deprecated Use {@link BuildInfo} instead.
  */
+// Created  5/3/12 at 9:06 PM
+// (C) Zachary Kurmas 2012
 
-public class BuildDate {
+public class BuildInfo {
 
-   private BuildDate() {}
+   public static final String DEFAULT_RESOURCE_NAME = "buildInfo.properties";
 
-   public static final String DEFAULT_RESOURCE_NAME = "builddate.properties";
+   /**
+    * Exception thrown when either the properties file won't parse, or
+    * the date in the properties file won't parse
+    */
+   public static class InvalidBuildInfoFile extends RuntimeException {
+      public InvalidBuildInfoFile(String s) {
+         super(s);
+      }
+   }
+
+   private Date buildDate;
+   private String version;
+
+   private BuildInfo(Date buildDate, String version) {
+      this.buildDate = buildDate;
+      this.version = version;
+   }
+
+   public Date getBuildDate() {
+      return buildDate;
+   }
+
+   public String getVersion() {
+      return version;
+   }
 
    /**
     * Loads the specified resource for the class' package and returns a
-    * {@code Date} object representing the date stored in the resource.  Obtained from
+    * {@code BuildInfo} object representing data stored in the resource.  Obtained from
     * http://forum.java.sun.com/thread.jspa?threadID=584408&messageID=3012258
     *
     * @param resource the resource containing the build date
     * @param c        A class in the package containing the resource
-    * @return a {@code Date} object containing the information stored in the
+    * @return a {@code BuildInfo} object containing the information stored in the
     *         resource, or {@code null} if the resource can't be found.
-    *
     */
-   public static Date getBuildDate(String resource, Class<? extends Object> c) {
-      Date retValue = null;
+   public static BuildInfo make(String resource, Class<? extends Object> c) {
+      BuildInfo retValue = null;
       try {
          Properties p = new Properties();
          InputStream is = c.getResourceAsStream(resource);
          if (is != null) {
             p.load(is);
             String buildDateString = p.getProperty("builddate");
+            Date buildDate;
             try {
-               retValue = buildDateString == null ? null
+               buildDate = buildDateString == null ? null
                      : new SimpleDateFormat("yyyy.MM.dd HH.mm.ss")
                      .parse(buildDateString);
             } catch (ParseException e) {
-               return null;
+               throw new InvalidBuildInfoFile("Date in properties file won't parse: \"" + buildDateString + "\"");
             }
+            retValue = new BuildInfo(buildDate, p.getProperty("version"));
          } else {
-            return null;
+            throw new InvalidBuildInfoFile("Build info resource file \"" + resource + "\" does not exist for class " +
+                  c.getName() + ".");
          }
       } catch (IOException e) {
          return null;
@@ -75,42 +104,15 @@ public class BuildDate {
    }
 
    /**
-    * Loads the specified resource for the object's package and returns a
-    * {@code Date} object representing the date stored in the resource.
-    *
-    * @param resource the resource containing the build date
-    * @param obj      An object in the package containing the resource
-    * @return a {@code Date} object containing the information stored in the
-    *         resource, or {@code null} if the resource can't be found.
-    *
-    */
-   public static Date getBuildDate(String resource, Object obj) {
-      return getBuildDate(resource, obj.getClass());
-   }
-
-   /**
-    * Loads the default resource for the object's package and returns a
-    * {@code Date} object representing the date stored in the resource.
-    *
-    * @param obj An object in the package containing the resource
-    * @return a {@code Date} object containing the information stored in the
-    *         resource, or {@code null} if the resource can't be found.
-    *
-    */
-   public static Date getBuildDate(Object obj) {
-      return getBuildDate(DEFAULT_RESOURCE_NAME, obj.getClass());
-   }
-
-   /**
     * Loads the default resource for the class' package and returns a
-    * {@code Date} object representing the date stored in the resource.
+    * {@code BuildInfo} object representing data stored in the resource.  Obtained from
+    * http://forum.java.sun.com/thread.jspa?threadID=584408&messageID=3012258
     *
     * @param c A class in the package containing the resource
-    * @return a {@code Date} object containing the information stored in the
+    * @return a {@code BuildInfo} object containing the information stored in the
     *         resource, or {@code null} if the resource can't be found.
-    *
     */
-   public static Date getBuildDate(Class<? extends Object> c) {
-      return getBuildDate(DEFAULT_RESOURCE_NAME, c);
+   public static BuildInfo make(Class<? extends Object> c) {
+      return make(DEFAULT_RESOURCE_NAME, c);
    }
 }

@@ -17,6 +17,7 @@
 package edu.gvsu.kurmasz.warszawa.log;
 
 
+import edu.gvsu.kurmasz.warszawa.Warszawa;
 import edu.gvsu.kurmasz.warszawa.io.OutputHelper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -250,8 +251,8 @@ public class LogTest extends SimpleLogTest {
    //
 
    Opener setOutputOrQuit_String = new Opener() {
-      private PrintStream error = OutputHelper.DEFAULT_ERROR_STREAM;
-      private int exit_value = OutputHelper.DEFAULT_EXIT_VALUE;
+      private PrintStream error = Warszawa.DEFAULT_ERROR_STREAM;
+      private int exit_value = Warszawa.DEFAULT_EXIT_VALUE;
 
       public PrintWriter openInner(String filename) throws FileNotFoundException {
          return OutputHelper.openWriterOrQuit(filename, true, error, exit_value);
@@ -380,8 +381,8 @@ public class LogTest extends SimpleLogTest {
    //
 
    Opener configureOrQuit_string_int = new Opener() {
-      private PrintStream error = OutputHelper.DEFAULT_ERROR_STREAM;
-      private int exit_value = OutputHelper.DEFAULT_EXIT_VALUE;
+      private PrintStream error = Warszawa.DEFAULT_ERROR_STREAM;
+      private int exit_value = Warszawa.DEFAULT_EXIT_VALUE;
 
       public PrintWriter openInner(String filename) throws FileNotFoundException {
          return OutputHelper.openWriterOrQuit(filename, true, error, exit_value);
@@ -456,12 +457,12 @@ public class LogTest extends SimpleLogTest {
       Log expected = mock(Log.class);
       spy(Log.class);
       doReturn(expected).when(Log.class);
-      Log.makeLogOrQuit(filename, threshold, Log.DEFAULT_ERROR_STREAM, Log.DEFAULT_EXIT_VALUE);
+      Log.makeLogOrQuit(filename, threshold, Warszawa.DEFAULT_ERROR_STREAM, Warszawa.DEFAULT_EXIT_VALUE);
       Log observed = Log.makeLogOrQuit(filename, threshold);
       assertEquals(expected, observed);
 
       verifyStatic();
-      Log.makeLogOrQuit(filename, threshold, Log.DEFAULT_ERROR_STREAM, Log.DEFAULT_EXIT_VALUE);
+      Log.makeLogOrQuit(filename, threshold, Warszawa.DEFAULT_ERROR_STREAM, Warszawa.DEFAULT_EXIT_VALUE);
    }
 
    //

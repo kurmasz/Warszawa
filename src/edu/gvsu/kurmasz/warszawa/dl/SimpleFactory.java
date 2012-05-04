@@ -16,6 +16,11 @@
  */
 package edu.gvsu.kurmasz.warszawa.dl;
 
+import edu.gvsu.kurmasz.warszawa.Warszawa;
+
+import javax.xml.bind.annotation.XmlElementRef;
+import java.io.FileNotFoundException;
+import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
@@ -28,6 +33,8 @@ import java.lang.reflect.Modifier;
 // (C) 2009 Zachary Kurmas
 // Created December 31, 2009
 public class SimpleFactory {
+
+   private static final boolean DEFAULT_RUNTIMEPASSTHROUGH = false;
 
    // These are not private so that SimpleFactoryTest can access them.
    static final String BASE = "Cannot instantiate an object of \"%s\" because ";
@@ -58,6 +65,15 @@ public class SimpleFactory {
                + " This class appears to be a non-static inner class.  "
                + "Remember that every constructor for a Non-static inner class implicitly takes "
                + "the enclosing object as a parameter.";
+
+   static final String NULL_PARAMETERS = BASE +
+         "one of the parameters to the factory was null.  The factory methods currently cannot handle null " +
+         "parameters.  (We hope to remove this restriction in a future version.)";
+
+   static final String NULL_PARAMETER_LIST = BASE +
+         "the parameter list was null.  (Passing null as the final parameter to make will not pass" +
+         " a single null; it will pass an array with the value null.  To pass a single null, " +
+         "try \"new Object[]{null}\".)";
 
    /*
    No longer needed
@@ -104,7 +120,9 @@ public class SimpleFactory {
     * simply throw an exception if more than one constructor could be called given the types of the
     * actual parameters, but no one constructor matches exactly.</li>
     *
-    * <li>You cannot directly pass primitive data to the constructor.  Any primitive data will be autoboxed.</li>
+    * <li>You cannot directly pass primitive data to the constructor.  Any primitive data will be autoboxed.  You
+    * cannot pass <code>null</code> as a parameter to the constructor.
+    * </li>
     *
     * </ul>
     *
@@ -149,6 +167,10 @@ public class SimpleFactory {
 
       if (parentClass == null) {
          throw new IllegalArgumentException("parentClass cannot be null");
+      }
+
+      if (params == null) {
+         throw new IllegalArgumentException(String.format(NULL_PARAMETER_LIST, name));
       }
 
       //
@@ -243,7 +265,7 @@ public class SimpleFactory {
     */
    public static <T> T make(String name, Class<T> parentClass, Object... params)
          throws DLException {
-      return  make(name, parentClass, false, params);
+      return make(name, parentClass, DEFAULT_RUNTIMEPASSTHROUGH, params);
    }
 
    /**
@@ -314,6 +336,13 @@ public class SimpleFactory {
          return instantiateFromExactMatch(classObject, false, params);
       }
 
+      // Currently, none of the parameters may be null.
+      for (Object param : params) {
+         if (param == null) {
+            throw new DLException(String.format(NULL_PARAMETERS, classObject.getName()), null);
+         }
+      }
+
 
       Constructor<?> matchingConstructor = null;
       boolean multipleMatches = false;
@@ -348,4 +377,77 @@ public class SimpleFactory {
       }
       return instantiateFromExactMatch(classObject, multipleMatches, params);
    }
+
+   //
+   // Quit methods
+   //
+   private static void quit(String className, Class<?> parentClass, DLException e, PrintStream error, int exitValue) {
+      error.printf("Cannot instantiate class %s and assign it to %s because %s",
+            className, parentClass.getName(), e.getMessage());
+      System.exit(exitValue);
+   }
+
+   /**
+    * Try to {@link #make(String, Class, boolean, Object...)} a new object, or exit the program if the call to {@link
+    * #make(String, Class, boolean, Object...)} throws a {@link DLException}.  (Note:  This method only quits when it
+    * encounters a {@link DLException}.  It does not quit if {@code rethrowRuntimeException} is {@code true} and the
+    * constructor throws a {@code RuntimeException}.
+    *
+    * @param <T>                      A super-type of the object to be created
+    * @param name                     The fully qualified name of the class to be instantiated
+    * @param parentClass              The {@code Class} object for {@code T} (needed to verify that
+    *                                 the cast from {@code Object} to {@code T} is safe).
+    * @param rethrowRuntimeExceptions when {@code true}, then this method re-throws any {@code RuntimeException}s
+    *                                 that are the cause of any {@code InvocationTargetException}.  When {@code false},
+    *                                 all {@code InvocationTargetExceptions} generate a {@link DLException} (the same
+    *                                 as any other exception). (See note above).
+    * @param error                    the stream to which to print any error messages
+    * @param exitValue                the value the process will return on exit
+    * @param params                   a list of parameters to the constructor
+    * @return the newly created object
+    */
+   public static <T> T makeOrQuit(String name, Class<T> parentClass, boolean rethrowRuntimeExceptions,
+                                  PrintStream error, int exitValue,
+                                  Object... params) {
+      try {
+         return make(name, parentClass, rethrowRuntimeExceptions, params);
+      } catch (DLException e) {
+         quit(name, parentClass, e, error, exitValue);
+
+         // Quit calls System.exit(0), so this line of code should never run.
+         assert false : "This line of code should never run.";
+         return null;
+      }
+   }
+
+   /**
+    * calls {@link #makeOrQuit(String, Class, boolean, java.io.PrintStream, int, Object...)} with the default error
+    * stream an exit value.
+    */
+   public static <T> T makeOrQuit(String name, Class<T> parentClass, boolean rethrowRuntimeExceptions,
+                                  Object... params) {
+      return makeOrQuit(name, parentClass, rethrowRuntimeExceptions, Warszawa.DEFAULT_ERROR_STREAM,
+            Warszawa.DEFAULT_EXIT_VALUE, params);
+   }
+
+
+   /**
+    * Calls {@link #makeOrQuit(String, Class, boolean, java.io.PrintStream, int, Object...)} with default value of
+    * {@code false} for {@code rethrowRuntimeExceptions}
+    */
+   public static <T> T makeOrQuit(String name, Class<T> parentClass,
+                                  PrintStream error, int exitValue,
+                                  Object... params) {
+      return makeOrQuit(name, parentClass, DEFAULT_RUNTIMEPASSTHROUGH, error, exitValue, params);
+   }
+
+   /**
+    * calls {@link #makeOrQuit(String, Class, java.io.PrintStream, int, Object...)} with the default error
+    * stream an exit value.
+    */
+   public static <T> T makeOrQuit(String name, Class<T> parentClass,
+                                  Object... params) {
+      return makeOrQuit(name, parentClass, DEFAULT_RUNTIMEPASSTHROUGH, Warszawa.DEFAULT_ERROR_STREAM, Warszawa.DEFAULT_EXIT_VALUE, params);
+   }
+
 }

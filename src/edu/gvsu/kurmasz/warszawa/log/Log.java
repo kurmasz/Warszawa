@@ -16,6 +16,7 @@
  */
 package edu.gvsu.kurmasz.warszawa.log;
 
+import edu.gvsu.kurmasz.warszawa.Warszawa;
 import edu.gvsu.kurmasz.warszawa.io.OutputHelper;
 
 import java.io.FileNotFoundException;
@@ -33,8 +34,7 @@ import java.io.PrintWriter;
 
 public class Log extends SimpleLog {
 
-   public static final int DEFAULT_EXIT_VALUE = OutputHelper.DEFAULT_EXIT_VALUE;
-   public static final PrintStream DEFAULT_ERROR_STREAM = OutputHelper.DEFAULT_ERROR_STREAM;
+
    //private boolean closeAutomatically = true;
 
 
@@ -134,7 +134,7 @@ public class Log extends SimpleLog {
     * @param file the file to which to write logging messages
     */
    public void setOutputOrQuit(String file) {
-      setOutputOrQuit(file, DEFAULT_ERROR_STREAM, DEFAULT_EXIT_VALUE);
+      setOutputOrQuit(file, Warszawa.DEFAULT_ERROR_STREAM, Warszawa.DEFAULT_EXIT_VALUE);
    }
 
    /**
@@ -194,7 +194,7 @@ public class Log extends SimpleLog {
     *                  logged.)
     */
    public void configureOrQuit(String file, int threshold) {
-      configureOrQuit(file, threshold, DEFAULT_ERROR_STREAM, DEFAULT_EXIT_VALUE);
+      configureOrQuit(file, threshold, Warszawa.DEFAULT_ERROR_STREAM, Warszawa.DEFAULT_EXIT_VALUE);
    }
 
    /**
@@ -229,7 +229,7 @@ public class Log extends SimpleLog {
     * @return a valid {@code Log} object
     */
    public static Log makeLogOrQuit(String file, int threshold) {
-      return makeLogOrQuit(file, threshold, DEFAULT_ERROR_STREAM, DEFAULT_EXIT_VALUE);
+      return makeLogOrQuit(file, threshold, Warszawa.DEFAULT_ERROR_STREAM, Warszawa.DEFAULT_EXIT_VALUE);
    }
 
    /**
