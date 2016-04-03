@@ -78,7 +78,6 @@ public class Log extends SimpleLog {
     * @param threshold Minimum level of importance to be logged. (In other words,
     *                  only messages with values at least {@code debugLevel} are
     *                  logged.)
-    * @throws FileNotFoundException if {@code logfile} can't be written to
     */
    public Log(OutputStream stream, int threshold) {
       super(null, threshold);

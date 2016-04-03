@@ -64,7 +64,7 @@ import static edu.gvsu.kurmasz.warszawa.Warszawa.DEFAULT_EXIT_VALUE;
  * <p>Yes, I did go a little overboard with the convenience methods. (Once I added the few I use most,
  * it was trivial to add the rest.)</p>
  *
- * <table border="1">
+ * <table border="1" summary="Convenience methods">
  * <tr><th rowspan="2" colspan="2"></th><th colspan="3">Stream Map</th></tr>
  * <tr>                                               <th>none</th><th>default</th><th>explicit</th></tr>
  * <tr><th rowspan="3">Filter Map</th><th>none</th><td>not provided</td><td>{@link #openMappedInputStream(String)

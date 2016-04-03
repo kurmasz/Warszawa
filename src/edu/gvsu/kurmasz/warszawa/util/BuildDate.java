@@ -42,7 +42,7 @@ public class BuildDate {
    /**
     * Loads the specified resource for the class' package and returns a
     * {@code Date} object representing the date stored in the resource.  Obtained from
-    * http://forum.java.sun.com/thread.jspa?threadID=584408&messageID=3012258
+    * http://forum.java.sun.com/thread.jspa?threadID=584408&amp;messageID=3012258
     *
     * @param resource the resource containing the build date
     * @param c        A class in the package containing the resource

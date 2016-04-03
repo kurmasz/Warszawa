@@ -16,9 +16,6 @@
  */
 package edu.gvsu.kurmasz.warszawa.util;
 
-import com.sun.xml.internal.rngom.ast.builder.BuildException;
-import org.omg.CORBA.DynAnyPackage.Invalid;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
@@ -69,7 +66,7 @@ public class BuildInfo {
    /**
     * Loads the specified resource for the class' package and returns a
     * {@code BuildInfo} object representing data stored in the resource.  Obtained from
-    * http://forum.java.sun.com/thread.jspa?threadID=584408&messageID=3012258
+    * <a href="http://forum.java.sun.com/thread.jspa?threadID=584408&amp;messageID=3012258">Sun's Java Forum</a>
     *
     * @param resource the resource containing the build date
     * @param c        A class in the package containing the resource
@@ -106,8 +103,8 @@ public class BuildInfo {
    /**
     * Loads the default resource for the class' package and returns a
     * {@code BuildInfo} object representing data stored in the resource.  Obtained from
-    * http://forum.java.sun.com/thread.jspa?threadID=584408&messageID=3012258
-    *
+    * <a href="http://forum.java.sun.com/thread.jspa?threadID=584408&amp;messageID=3012258">Sun's Java Forum</a>
+        *
     * @param c A class in the package containing the resource
     * @return a {@code BuildInfo} object containing the information stored in the
     *         resource, or {@code null} if the resource can't be found.

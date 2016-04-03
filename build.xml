@@ -3,9 +3,10 @@
    <!-- Setup ================================================== -->
 
    <!-- version info -->
-   <property name="warszawa_version" value="1.3"/>
+   <property name="warszawa_version" value="1.5"/>
 
    <!-- build info -->
+    <property name="javaVersion" value="1.7"/>  <!-- 1.7 needed for JCommander -->
    <property name="src" location="src"/>
    <property name="production_build" location="out/ant_production"/>
    <property name="test_build" location="out/ant_test"/>
@@ -51,14 +52,20 @@
    <!-- Compile ================================================== -->
    <target name="compile" description="compile source" depends="makedirs">
       <javac srcdir="${src}" destdir="${production_build}" classpathref="compile.classpath" debug="off"
-             includeantruntime="false" encoding="UTF-8">
+             includeantruntime="false" encoding="UTF-8" source="${javaVersion}" target="${javaVersion}">
          <compilerarg value="-Xlint:unchecked"/>
       </javac>
    </target>
 
-
+    <target name="compile_jcommander" description="compile source">
+        <javac srcdir="jcommander/src/main/java" destdir="${production_build}" debug="off"
+               includeantruntime="false" encoding="UTF-8" source="${javaVersion}" target="${javaVersion}">
+        </javac>
+    </target>
+    
+    
    <!-- Test stuff ================================================== -->
-   <target name="build_test" description="compile junit tests" depends="compile">
+   <target name="build_test" description="compile junit tests" depends="compile, compile_jcommander">
       <javac srcdir="${test_src}" destdir="${test_build}" classpathref="test.classpath" debug="on"
              includeantruntime="false" encoding="UTF-8"/>
    </target>
@@ -69,7 +76,7 @@
 
          <!-- This is necessary for Java 7 on windows only -->
          <!-- Hopefully there will come a time when it is no longer necessary -->
-         <jvmarg value="-XX:-UseSplitVerifier"/>
+         <!-- <jvmarg value="-XX:-UseSplitVerifier"/> -->
 
          <batchtest fork="yes">
             <fileset dir="${test_src}">
