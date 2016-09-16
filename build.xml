@@ -3,7 +3,7 @@
    <!-- Setup ================================================== -->
 
    <!-- version info -->
-   <property name="warszawa_version" value="1.5"/>
+   <property name="warszawa_version" value="1.6"/>
 
    <!-- build info -->
     <property name="javaVersion" value="1.7"/>  <!-- 1.7 needed for JCommander -->
