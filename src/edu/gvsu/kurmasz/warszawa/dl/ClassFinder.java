@@ -181,6 +181,9 @@ public class ClassFinder {
       err.printf("Class file \"%s\" is not readable.\n", path);
       err.println("(Check the file permissions.)");
       System.exit(invalid_parameters);
+    } else if (test.isDirectory()) {
+      err.printf("\"%s\" is a directory and, therefore, cannot be a Java class file.\n", path);
+      System.exit(invalid_parameters);
     }
 
     // split path into the directory and the filename
