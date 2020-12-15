@@ -240,11 +240,14 @@ public class ClassFinder {
       e.printStackTrace();
       System.exit(programmer_error);
     } catch (NoClassDefFoundError e) {
-      //String toMatch = ".*\\(wrong name:\\s+(.*)/" + className + "\\)";
-      String toMatch = ".*\\(NoClassDefFoundError:\\s+(.*)/" + className + "\\)";
+
+      // the order of the params in the string returned by NoClassDefFoundError
+      // changed between Java 1.7 and Java 13.  So, I'll look for both here.
+      String toMatch1 = ".*\\(wrong name:\\s+(.*)/" + className + "\\)";
+      String toMatch2 = ".*NoClassDefFoundError:\\s+(.*)/" + className + ".*";
       err.printf("Given .class file does not appear to contain a class named \"%s\".\n", className);
       err.println(e.toString());
-      if (Pattern.matches(toMatch, e.toString())) {
+      if (Pattern.matches(toMatch1, e.toString()) || Pattern.matches(toMatch2, e.toString())) {
         err.println("   (Test classes specified using their .class files must be in the default package.\n" +
             "    Test classes in other packages must be specified by class name and --classpath.)");
       }

@@ -69,6 +69,7 @@
    <!-- Test stuff ================================================== -->
    <target name="build_test" description="compile junit tests" depends="compile, compile_jcommander">
       <javac srcdir="${test_src}" destdir="${test_build}" classpathref="test.classpath" debug="on"
+             source="${javaVersion}" target="${javaVersion}"
              includeantruntime="false" encoding="UTF-8"/>
    </target>
 
