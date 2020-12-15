@@ -3,7 +3,9 @@
    <!-- Setup ================================================== -->
 
    <!-- version info -->
-   <property name="warszawa_version" value="1.6"/>
+   <!-- 1.7 December 2020.  Small fix ClassFinder:243 (detecting that class in package requested from filename)
+                            Also bumped javassist version to 3.27 -->
+   <property name="warszawa_version" value="1.7"/>
 
    <!-- build info -->
     <property name="javaVersion" value="1.7"/>  <!-- 1.7 needed for JCommander -->
@@ -62,8 +64,8 @@
                includeantruntime="false" encoding="UTF-8" source="${javaVersion}" target="${javaVersion}">
         </javac>
     </target>
-    
-    
+
+
    <!-- Test stuff ================================================== -->
    <target name="build_test" description="compile junit tests" depends="compile, compile_jcommander">
       <javac srcdir="${test_src}" destdir="${test_build}" classpathref="test.classpath" debug="on"

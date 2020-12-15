@@ -240,7 +240,8 @@ public class ClassFinder {
       e.printStackTrace();
       System.exit(programmer_error);
     } catch (NoClassDefFoundError e) {
-      String toMatch = ".*\\(wrong name:\\s+(.*)/" + className + "\\)";
+      //String toMatch = ".*\\(wrong name:\\s+(.*)/" + className + "\\)";
+      String toMatch = ".*\\(NoClassDefFoundError:\\s+(.*)/" + className + "\\)";
       err.printf("Given .class file does not appear to contain a class named \"%s\".\n", className);
       err.println(e.toString());
       if (Pattern.matches(toMatch, e.toString())) {

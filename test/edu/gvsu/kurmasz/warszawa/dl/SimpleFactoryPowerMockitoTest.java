@@ -20,6 +20,7 @@ import static org.powermock.api.mockito.PowerMockito.*;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({SimpleFactory.class})
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class SimpleFactoryPowerMockitoTest {
 
   //

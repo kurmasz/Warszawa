@@ -16,7 +16,12 @@
  */
 package edu.gvsu.kurmasz.warszawa.listgen;
 
+import edu.gvsu.kurmasz.warszawa.util.RangeTests;
 import org.junit.*;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 /**
  *
@@ -27,7 +32,9 @@ import org.junit.*;
  */
 // (C) 2007 Zachary Kurmas
 
-
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({IntegerListGenerator.class, RangeTests.class})
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class CornerCasesTest extends IntegerListGeneratorTest {
    protected CornerCases ecc = new CornerCases();
 
@@ -325,6 +332,6 @@ public class CornerCasesTest extends IntegerListGeneratorTest {
       verifyAssert_helper(10, 1, -1);
    }
 }
-	
-	
-    
+
+
+

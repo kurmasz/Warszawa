@@ -18,7 +18,8 @@ package edu.gvsu.kurmasz.warszawa.util;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.core.classloader.annotations.PowerMockIgnore;
+import org.powermock.core.classloader.annotations.*;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.util.Arrays;
@@ -37,6 +38,7 @@ import static org.powermock.api.mockito.PowerMockito.*;
 // (C) Zachary Kurmas 2011
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({ArrayUtils.class})
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class ArrayUtilsTest {
 
    //

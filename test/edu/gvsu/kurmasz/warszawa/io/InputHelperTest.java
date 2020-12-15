@@ -24,7 +24,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.core.classloader.annotations.*;
 import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.*;
@@ -42,6 +42,7 @@ import static org.powermock.api.mockito.PowerMockito.*;
 // (C) Zachary Kurmas 2011
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({InputHelper.class})
+@PowerMockIgnore("jdk.internal.reflect.*")
 public class InputHelperTest {
 
    // Bytes are, by definition, signed.  However, hexdump shows unsigned bytes.
